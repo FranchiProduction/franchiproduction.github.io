@@ -47,6 +47,18 @@
     cursor: pointer; user-select: none;
   }
   header input[type=checkbox] { accent-color: var(--accent); }
+  header .header-actions { display: flex; align-items: center; gap: 8px; }
+  header button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 32px; padding: 5px 10px;
+    color: var(--text); background: var(--panel-2);
+    border: 1px solid var(--border); border-radius: 5px;
+    cursor: pointer; font: inherit; font-size: 12px;
+  }
+  header button:hover { background: var(--border); }
+  header button[aria-pressed="true"] {
+    color: #fff; background: #245a91; border-color: var(--accent);
+  }
 
   main { flex: 1; min-height: 0; display: flex; }
 
@@ -151,6 +163,29 @@
     main { flex-direction: column; }
     aside { flex: 1 1 auto; border-left: none; border-top: 1px solid var(--border); }
     .player { flex: 0 0 auto; max-height: 50vh; }
+    header { gap: 8px; padding: 8px 10px; flex-wrap: wrap; }
+    header .header-actions { margin-left: auto; }
+    header button { min-width: 40px; padding: 5px 8px; }
+    header button .button-label { display: none; }
+  }
+
+  body.actions-hidden aside { display: none; }
+  body.fullscreen-ui { width: 100%; height: 100%; overflow: hidden; }
+  body.fullscreen-ui header { padding-top: max(8px, env(safe-area-inset-top)); }
+  body.fullscreen-ui main { min-height: 0; }
+  body.fullscreen-ui .player { max-height: none; }
+  body.cinema-mode {
+    position: fixed; inset: 0; z-index: 2147483647;
+    width: 100vw; height: 100dvh;
+  }
+
+  @media (max-width: 920px) and (orientation: landscape) {
+    body.fullscreen-ui main { flex-direction: row; }
+    body.fullscreen-ui aside {
+      flex: 0 0 clamp(240px, 36vw, 340px);
+      border-top: none; border-left: 1px solid var(--border);
+    }
+    body.fullscreen-ui .player { flex: 1 1 auto; }
   }
 
   .tracks::-webkit-scrollbar { width: 10px; }
@@ -159,7 +194,7 @@
   .tracks::-webkit-scrollbar-thumb:hover { background: #3a3a44; }
 </style>
 </head>
-<body>
+<body id="playerSurface">
 
 <header>
   <h1 id="pageTitle">Azioni Scelte Amichevole GioiaDelColle-Palmi 1-3</h1>
@@ -167,6 +202,14 @@
   <label title="Se attivo, alla fine di una traccia il player si ferma anziché passare alla successiva">
     <input type="checkbox" id="stopAtEnd"> Stop a fine traccia
   </label>
+  <div class="header-actions">
+    <button id="actionsToggleBtn" type="button" aria-controls="trackPanel" aria-expanded="true" aria-pressed="true">
+      ☰ <span class="button-label">Azioni</span>
+    </button>
+    <button id="fullscreenBtn" type="button" aria-label="Schermo intero con azioni" aria-pressed="false">
+      ⛶ <span class="button-label">Schermo intero</span>
+    </button>
+  </div>
 </header>
 
 <main>
@@ -186,7 +229,7 @@
     </div>
   </div>
 
-  <aside>
+  <aside id="trackPanel">
     <h2>Tracce<span class="count" id="totalCount"></span></h2>
     <div class="tracks" id="trackList"></div>
   </aside>
@@ -210,175 +253,175 @@ const DATA = {
   ],
   "chapters": [
     {
-      "label": "AzioniScelte 1",
+      "label": "Azioni 1",
       "startMs": 4000,
       "durationMs": 18000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 2",
+      "label": "Azioni 2",
       "startMs": 22000,
       "durationMs": 20000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 3",
+      "label": "Azioni 3",
       "startMs": 42000,
       "durationMs": 28000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 4",
+      "label": "Azioni 4",
       "startMs": 70000,
       "durationMs": 14000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 5",
+      "label": "Azioni 5",
       "startMs": 84000,
       "durationMs": 18000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 6",
+      "label": "Azioni 6",
       "startMs": 102000,
       "durationMs": 13000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 7",
+      "label": "Azioni 7",
       "startMs": 115000,
       "durationMs": 13000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 8",
+      "label": "Azioni 8",
       "startMs": 128000,
       "durationMs": 27000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 9",
+      "label": "Azioni 9",
       "startMs": 155000,
       "durationMs": 15000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 10",
+      "label": "Azioni 10",
       "startMs": 170000,
       "durationMs": 20000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 11",
+      "label": "Azioni 11",
       "startMs": 190000,
       "durationMs": 22000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 12",
+      "label": "Azioni 12",
       "startMs": 212000,
       "durationMs": 23000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 13",
+      "label": "Azioni 13",
       "startMs": 235000,
       "durationMs": 15000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 14",
+      "label": "Azioni 14",
       "startMs": 250000,
       "durationMs": 14000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 15",
+      "label": "Azioni 15",
       "startMs": 264000,
       "durationMs": 15000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 16",
+      "label": "Azioni 16",
       "startMs": 279000,
       "durationMs": 19000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 17",
+      "label": "Azioni 17",
       "startMs": 298000,
       "durationMs": 13000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 18",
+      "label": "Azioni 18",
       "startMs": 311000,
       "durationMs": 15000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 19",
+      "label": "Azioni 19",
       "startMs": 326000,
       "durationMs": 15000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 20",
+      "label": "Azioni 20",
       "startMs": 341000,
       "durationMs": 21000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 21",
+      "label": "Azioni 21",
       "startMs": 362000,
       "durationMs": 14000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 22",
+      "label": "Azioni 22",
       "startMs": 376000,
       "durationMs": 12000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 23",
+      "label": "Azioni 23",
       "startMs": 388000,
       "durationMs": 13000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 24",
+      "label": "Azioni 24",
       "startMs": 401000,
       "durationMs": 16000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 25",
+      "label": "Azioni 25",
       "startMs": 417000,
       "durationMs": 13000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 26",
+      "label": "Azioni 26",
       "startMs": 430000,
       "durationMs": 13000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 27",
+      "label": "Azioni 27",
       "startMs": 443000,
       "durationMs": 15000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 28",
+      "label": "Azioni 28",
       "startMs": 458000,
       "durationMs": 14000,
       "groupIdx": 0
     },
     {
-      "label": "AzioniScelte 29",
+      "label": "Azioni 29",
       "startMs": 472000,
       "durationMs": 14000,
       "groupIdx": 0
@@ -398,6 +441,9 @@ const stopAtEndCb   = document.getElementById('stopAtEnd');
 const pageTitle     = document.getElementById('pageTitle');
 const videoError    = document.getElementById('videoError');
 const errId         = document.getElementById('errId');
+const playerSurface = document.getElementById('playerSurface');
+const actionsToggleBtn = document.getElementById('actionsToggleBtn');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
 
 let player          = null;
 let playerReady     = false;
@@ -429,7 +475,8 @@ function onYouTubeIframeAPIReady() {
       rel: 0,            // limita i video correlati a fine clip
       modestbranding: 1, // (deprecato da YouTube, innocuo)
       playsinline: 1,
-      controls: 1
+      controls: 1,
+      fs: 0
     },
     events: {
       onReady: onPlayerReady,
@@ -561,6 +608,53 @@ function togglePlay() {
 prevBtn.addEventListener('click', gotoPrev);
 nextBtn.addEventListener('click', gotoNext);
 playPauseBtn.addEventListener('click', togglePlay);
+
+function setActionsVisible(visible) {
+  document.body.classList.toggle('actions-hidden', !visible);
+  actionsToggleBtn.setAttribute('aria-expanded', String(visible));
+  actionsToggleBtn.setAttribute('aria-pressed', String(visible));
+}
+
+function updateFullscreenUi() {
+  const active = Boolean(document.fullscreenElement) || document.body.classList.contains('cinema-mode');
+  document.body.classList.toggle('fullscreen-ui', active);
+  fullscreenBtn.setAttribute('aria-pressed', String(active));
+  fullscreenBtn.setAttribute('aria-label', active
+    ? 'Esci da schermo intero'
+    : 'Schermo intero con azioni');
+  const label = fullscreenBtn.querySelector('.button-label');
+  if (label) label.textContent = active ? 'Esci' : 'Schermo intero';
+}
+
+async function toggleFullscreen() {
+  if (document.fullscreenElement) {
+    await document.exitFullscreen();
+    return;
+  }
+  if (document.body.classList.contains('cinema-mode')) {
+    document.body.classList.remove('cinema-mode');
+    updateFullscreenUi();
+    return;
+  }
+  if (playerSurface.requestFullscreen) {
+    try {
+      await playerSurface.requestFullscreen();
+      return;
+    } catch (e) {
+      // Safari mobile può rifiutare il fullscreen della pagina: usa la modalità cinema.
+    }
+  }
+  document.body.classList.add('cinema-mode');
+  updateFullscreenUi();
+}
+
+actionsToggleBtn.addEventListener('click', () => {
+  setActionsVisible(document.body.classList.contains('actions-hidden'));
+});
+fullscreenBtn.addEventListener('click', toggleFullscreen);
+document.addEventListener('fullscreenchange', updateFullscreenUi);
+setActionsVisible(true);
+updateFullscreenUi();
 
 document.addEventListener('keydown', (e) => {
   if (e.target && /input|textarea/i.test(e.target.tagName)) return;
