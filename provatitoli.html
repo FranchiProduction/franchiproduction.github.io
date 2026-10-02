@@ -157,6 +157,7 @@
     flex: 0 0 auto; color: var(--text-dim);
     font-variant-numeric: tabular-nums; font-size: 12px;
   }
+  .track.title .label { font-weight: 600; color: var(--accent); }
   .track.cover .label { font-style: italic; color: var(--text-dim); }
 
   @media (max-width: 720px) {
@@ -253,6 +254,13 @@ const DATA = {
   ],
   "chapters": [
     {
+      "label": "Titolo: ProvaTitoli",
+      "startMs": 0,
+      "durationMs": 4000,
+      "groupIdx": 0,
+      "isTitle": true
+    },
+    {
       "label": "ProvaTitoli 1",
       "startMs": 4000,
       "durationMs": 15000,
@@ -299,6 +307,13 @@ const DATA = {
       "startMs": 119000,
       "durationMs": 12000,
       "groupIdx": 0
+    },
+    {
+      "label": "Titolo: ProvaTitoli",
+      "startMs": 131000,
+      "durationMs": 4000,
+      "groupIdx": 0,
+      "isTitle": true
     },
     {
       "label": "ProvaTitoli 9",
@@ -355,7 +370,9 @@ let currentIdx      = -1;
 
 document.title = (DATA.title || 'Player') + ' — Player Montaggio';
 pageTitle.textContent = DATA.title || 'Montaggio';
-totalCount.textContent = ' (' + DATA.chapters.length + ')';
+const actionCount = DATA.chapters.filter(c => !c.isTitle).length;
+const titleCount = DATA.chapters.length - actionCount;
+totalCount.textContent = ' (' + actionCount + (titleCount ? ' azioni · ' + titleCount + ' titoli' : '') + ')';
 errId.textContent = YOUTUBE_ID;
 
 renderTrackList();
@@ -427,6 +444,7 @@ function tick() {
 function renderTrackList() {
   trackListEl.innerHTML = '';
   let lastGroup = -2;
+  let actionNumber = 0;
   DATA.chapters.forEach((c, i) => {
     if (DATA.groups && DATA.groups.length > 0 && c.groupIdx !== lastGroup) {
       const h = document.createElement('div');
@@ -440,8 +458,10 @@ function renderTrackList() {
     const row = document.createElement('div');
     row.className = 'track' + (i === 0 && c.groupIdx === -1 && /copertina/i.test(c.label) ? ' cover' : '');
     row.dataset.idx = i;
+    row.classList.toggle('title', Boolean(c.isTitle));
+    const number = c.isTitle ? 'Titolo' : String(++actionNumber);
     row.innerHTML =
-      '<span class="num">' + (i + 1) + '</span>' +
+      '<span class="num">' + number + '</span>' +
       '<span class="label"></span>' +
       '<span class="dur">' + formatMs(c.durationMs) + '</span>';
     row.querySelector('.label').textContent = c.label;
@@ -475,8 +495,9 @@ function setCurrentIdx(idx) {
   }
   if (idx >= 0) {
     const c = DATA.chapters[idx];
-    nowPlayingEl.innerHTML = '<b>' + (idx + 1) + '.</b> ' + escapeHtml(c.label);
-    trackCounter.textContent = (idx + 1) + ' / ' + DATA.chapters.length;
+    const number = c.isTitle ? 'Titolo' : DATA.chapters.slice(0, idx + 1).filter(ch => !ch.isTitle).length;
+    nowPlayingEl.innerHTML = '<b>' + number + (c.isTitle ? '' : '.') + '</b> ' + escapeHtml(c.label);
+    trackCounter.textContent = c.isTitle ? 'Titolo' : number + ' / ' + actionCount;
   } else {
     nowPlayingEl.textContent = '—';
     trackCounter.textContent = '—';
