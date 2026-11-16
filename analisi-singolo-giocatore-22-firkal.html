@@ -1,0 +1,2540 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Analisi Singolo Giocatore 22-Firkal — Player Montaggio</title>
+<meta property="og:title" content="Analisi Singolo Giocatore 22-Firkal — Player Montaggio">
+<meta property="og:type" content="website">
+<style>
+  :root {
+    --bg: #141416;
+    --panel: #1e1e22;
+    --panel-2: #26262c;
+    --border: #2e2e36;
+    --text: #e9e9ec;
+    --text-dim: #9a9aa3;
+    --accent: #4a9eff;
+    --accent-bg: rgba(74, 158, 255, 0.18);
+    --accent-bg-strong: rgba(74, 158, 255, 0.35);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  body { display: flex; flex-direction: column; }
+
+  header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 10px 16px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    flex: 0 0 auto;
+  }
+  header h1 {
+    margin: 0; font-size: 15px; font-weight: 600;
+    flex: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  header .meta { color: var(--text-dim); font-size: 12px; }
+  header label {
+    display: flex; align-items: center; gap: 6px;
+    color: var(--text-dim); font-size: 12px;
+    cursor: pointer; user-select: none;
+  }
+  header input[type=checkbox] { accent-color: var(--accent); }
+  header .header-actions { display: flex; align-items: center; gap: 8px; }
+  header button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 32px; padding: 5px 10px;
+    color: var(--text); background: var(--panel-2);
+    border: 1px solid var(--border); border-radius: 5px;
+    cursor: pointer; font: inherit; font-size: 12px;
+  }
+  header button:hover { background: var(--border); }
+  header button[aria-pressed="true"] {
+    color: #fff; background: #245a91; border-color: var(--accent);
+  }
+
+  main { flex: 1; min-height: 0; display: flex; }
+
+  .player {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column;
+    background: #000;
+  }
+  .video-wrap {
+    flex: 1; min-height: 0;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  #ytplayer { width: 100%; height: 100%; }
+  .video-error {
+    position: absolute; inset: 0;
+    display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; background: var(--bg);
+    text-align: center; padding: 24px;
+  }
+  .video-error.show { display: flex; }
+  .video-error p { color: var(--text-dim); margin: 0; max-width: 480px; }
+  .video-error code {
+    background: var(--panel-2); padding: 2px 6px; border-radius: 3px; font-size: 13px;
+  }
+
+  .transport {
+    flex: 0 0 auto;
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px;
+    background: var(--panel); border-top: 1px solid var(--border);
+  }
+  .transport button {
+    background: var(--panel-2); color: var(--text);
+    border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 4px;
+    cursor: pointer; font: inherit; min-width: 44px;
+  }
+  .transport button:hover:not(:disabled) { background: var(--border); }
+  .transport button:disabled { opacity: 0.4; cursor: default; }
+  .transport .now {
+    flex: 1; min-width: 0;
+    color: var(--text-dim); font-size: 13px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    padding: 0 8px;
+  }
+  .transport .now b { color: var(--text); font-weight: 500; }
+
+  aside {
+    flex: 0 0 320px;
+    background: var(--panel);
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  aside h2 {
+    margin: 0; padding: 10px 14px;
+    font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+    flex: 0 0 auto;
+  }
+  aside h2 .count { color: var(--text); margin-left: 6px; }
+  .tracks { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 0; }
+  .group-header {
+    padding: 10px 14px 4px;
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--accent);
+    border-top: 1px solid var(--border);
+  }
+  .group-header:first-child { border-top: none; }
+  .track {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 14px; cursor: pointer;
+    border-left: 3px solid transparent;
+  }
+  .track:hover { background: var(--panel-2); }
+  .track.active {
+    background: var(--accent-bg);
+    border-left-color: var(--accent);
+  }
+  .track .num {
+    flex: 0 0 auto; color: var(--text-dim);
+    font-variant-numeric: tabular-nums; font-size: 12px;
+    min-width: 24px; text-align: right;
+  }
+  .track.active .num { color: var(--accent); font-weight: 600; }
+  .track .label {
+    flex: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: 13px;
+  }
+  .track .dur {
+    flex: 0 0 auto; color: var(--text-dim);
+    font-variant-numeric: tabular-nums; font-size: 12px;
+  }
+  .track.title .label { font-weight: 600; color: var(--accent); }
+  .track.cover .label { font-style: italic; color: var(--text-dim); }
+
+  @media (max-width: 720px) {
+    main { flex-direction: column; }
+    aside { flex: 1 1 auto; border-left: none; border-top: 1px solid var(--border); }
+    .player { flex: 0 0 auto; max-height: 50vh; }
+    header { gap: 8px; padding: 8px 10px; flex-wrap: wrap; }
+    header .header-actions { margin-left: auto; }
+    header button { min-width: 40px; padding: 5px 8px; }
+    header button .button-label { display: none; }
+  }
+
+  body.actions-hidden aside { display: none; }
+  body.fullscreen-ui { width: 100%; height: 100%; overflow: hidden; }
+  body.fullscreen-ui header { padding-top: max(8px, env(safe-area-inset-top)); }
+  body.fullscreen-ui main { min-height: 0; }
+  body.fullscreen-ui .player { max-height: none; }
+  body.cinema-mode {
+    position: fixed; inset: 0; z-index: 2147483647;
+    width: 100vw; height: 100dvh;
+  }
+
+  @media (max-width: 920px) and (orientation: landscape) {
+    body.fullscreen-ui main { flex-direction: row; }
+    body.fullscreen-ui aside {
+      flex: 0 0 clamp(240px, 36vw, 340px);
+      border-top: none; border-left: 1px solid var(--border);
+    }
+    body.fullscreen-ui .player { flex: 1 1 auto; }
+  }
+
+  .tracks::-webkit-scrollbar { width: 10px; }
+  .tracks::-webkit-scrollbar-track { background: var(--panel); }
+  .tracks::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+  .tracks::-webkit-scrollbar-thumb:hover { background: #3a3a44; }
+</style>
+</head>
+<body id="playerSurface">
+
+<header>
+  <h1 id="pageTitle">Analisi Singolo Giocatore 22-Firkal</h1>
+  <span class="meta" id="trackCounter">—</span>
+  <label title="Se attivo, alla fine di una traccia il player si ferma anziché passare alla successiva">
+    <input type="checkbox" id="stopAtEnd"> Stop a fine traccia
+  </label>
+  <div class="header-actions">
+    <button id="actionsToggleBtn" type="button" aria-controls="trackPanel" aria-expanded="true" aria-pressed="true">
+      ☰ <span class="button-label">Azioni</span>
+    </button>
+    <button id="fullscreenBtn" type="button" aria-label="Schermo intero con azioni" aria-pressed="false">
+      ⛶ <span class="button-label">Schermo intero</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="player">
+    <div class="video-wrap">
+      <div id="ytplayer"></div>
+      <div class="video-error" id="videoError">
+        <p>Impossibile caricare il video YouTube.<br>
+           Controlla l'ID inserito (<code id="errId"></code>) e la connessione.</p>
+      </div>
+    </div>
+    <div class="transport">
+      <button id="prevBtn" title="Traccia precedente (←)">|◀</button>
+      <button id="playPauseBtn" title="Play/Pausa (Spazio)">▶</button>
+      <button id="nextBtn" title="Traccia successiva (→)">▶|</button>
+      <span class="now" id="nowPlaying">—</span>
+    </div>
+  </div>
+
+  <aside id="trackPanel">
+    <h2>Tracce<span class="count" id="totalCount"></span></h2>
+    <div class="tracks" id="trackList"></div>
+  </aside>
+</main>
+
+<script>
+// ============================================================
+//  >>> INCOLLA QUI L'ID DEL VIDEO YOUTUBE <<<
+//  Esempio: se il link è  https://youtu.be/dQw4w9WgXcQ
+//  oppure  https://www.youtube.com/watch?v=dQw4w9WgXcQ
+//  l'ID è:  dQw4w9WgXcQ
+// ============================================================
+const YOUTUBE_ID = "kACNv0UZc_Y";
+
+// === DATI INIETTATI DAL GENERATORE Qt (NON modificare) ===
+const DATA = {
+  "title": "Analisi Singolo Giocatore 22-Firkal",
+  "videoFile": "Analisi Singolo Giocatore 22-Firkal.mp4",
+  "groups": [
+    "Battuta",
+    "Ricezione Singolo Giocatore",
+    "",
+    "Attacco dopo Rice",
+    "Contrattacco",
+    "Muro"
+  ],
+  "chapters": [
+    {
+      "label": "Titolo: Battuta",
+      "startMs": 0,
+      "durationMs": 4000,
+      "groupIdx": 0,
+      "isTitle": true
+    },
+    {
+      "label": "Battuta — *22SM=~~~58C~~N1 — Set 1 — 1-5",
+      "startMs": 4000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SM=~~~53B~~N1 — Set 1 — 10-12",
+      "startMs": 19000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SM+~~~67A~~~1 — Set 2 — 3-4",
+      "startMs": 34000,
+      "durationMs": 21000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SM-~~~56B~~~2 — Set 2 — 3-5",
+      "startMs": 55000,
+      "durationMs": 16000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SM-~~~77A~~~1 — Set 2 — 15-15",
+      "startMs": 71000,
+      "durationMs": 24000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ=~~~51A~~L1 — Set 3 — 0-0",
+      "startMs": 95000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SM!~~~76C~~~1 — Set 3 — 9-9",
+      "startMs": 110000,
+      "durationMs": 20000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SM+~~~76B~~~1 — Set 3 — 17-17",
+      "startMs": 130000,
+      "durationMs": 14000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SM-~~~76C~~~2 — Set 3 — 17-18",
+      "startMs": 144000,
+      "durationMs": 20000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SM-~~~68D~~~1 — Set 3 — 25-25",
+      "startMs": 164000,
+      "durationMs": 14000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ=~~~65D~~O1 — Set 1 — 1-1",
+      "startMs": 178000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SM-~~~68A~~~1 — Set 1 — 9-10",
+      "startMs": 193000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SM/~~~68C~~~1 — Set 2 — 6-7",
+      "startMs": 208000,
+      "durationMs": 16000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SM+~~~68B~~~2 — Set 2 — 6-8",
+      "startMs": 224000,
+      "durationMs": 13000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22ST!~~~65C~~~1 — Set 2 — 13-16",
+      "startMs": 237000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ#~~~68B~~~2T — Set 2 — 13-17",
+      "startMs": 252000,
+      "durationMs": 10000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22ST=~~~67~~~N3~A — Set 2 — 13-18",
+      "startMs": 262000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ=~~~66D~~O1 — Set 3 — 0-0",
+      "startMs": 277000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SM!~~~66C~~N1 — Set 3 — 8-10",
+      "startMs": 292000,
+      "durationMs": 22000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ!~~~68B~~~2T — Set 3 — 8-11",
+      "startMs": 314000,
+      "durationMs": 13000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SM-~~~66C~~~1 — Set 3 — 20-18",
+      "startMs": 327000,
+      "durationMs": 17000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ=~~~66~~~N1 — Set 4 — 12-7",
+      "startMs": 344000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ+~~~65B~~N1 — Set 4 — 22-16",
+      "startMs": 359000,
+      "durationMs": 21000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ+~~~65B~~~2 — Set 4 — 22-17",
+      "startMs": 380000,
+      "durationMs": 14000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ+~~~66~~~~1 — Set 5 — 2-3",
+      "startMs": 394000,
+      "durationMs": 14000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ-~~~66C~~~2 — Set 5 — 2-4",
+      "startMs": 408000,
+      "durationMs": 18000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ+~~~65A~~N1 — Set 5 — 10-11",
+      "startMs": 426000,
+      "durationMs": 31000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ=~~~63A~~N1 — Set 1 — 0-0",
+      "startMs": 457000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22ST=~~~66D~~~1 — Set 1 — 17-10",
+      "startMs": 472000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ!~~~68A~~~1 — Set 1 — 24-20",
+      "startMs": 487000,
+      "durationMs": 13000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22ST-~~~68A~~~2 — Set 1 — 24-21",
+      "startMs": 500000,
+      "durationMs": 18000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22ST-~~~66B~~~3T — Set 1 — 24-22",
+      "startMs": 518000,
+      "durationMs": 18000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22ST!~~~61B~~~4 — Set 1 — 24-23",
+      "startMs": 536000,
+      "durationMs": 22000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ-~~~68A~~~5 — Set 1 — 24-24",
+      "startMs": 558000,
+      "durationMs": 13000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22ST-~~~66B~~~1 — Set 2 — 6-9",
+      "startMs": 571000,
+      "durationMs": 18000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SM+~~~67A~~~2 — Set 2 — 6-10",
+      "startMs": 589000,
+      "durationMs": 12000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ-~~~65B~~~1 — Set 2 — 12-17",
+      "startMs": 601000,
+      "durationMs": 14000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ#~~~65B~~~1 — Set 3 — 0-0",
+      "startMs": 615000,
+      "durationMs": 10000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ=~~~66A~~~2~A — Set 3 — 0-1",
+      "startMs": 625000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ/~~~65B~~~1 — Set 3 — 9-7",
+      "startMs": 640000,
+      "durationMs": 19000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22ST+~~~66A~~~2 — Set 3 — 9-8",
+      "startMs": 659000,
+      "durationMs": 14000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ=~~~64A~~N1 — Set 3 — 18-19",
+      "startMs": 673000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SM!~~~66C~~~1 — Set 4 — 5-7",
+      "startMs": 688000,
+      "durationMs": 14000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ=~~~61D~~~1 — Set 4 — 19-16",
+      "startMs": 702000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ=~~~65A~~O1 — Set 1 — 1-3",
+      "startMs": 717000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SM!~~~67A~~~1 — Set 1 — 7-12",
+      "startMs": 732000,
+      "durationMs": 21000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ-~~~64A~~N2 — Set 1 — 7-13",
+      "startMs": 753000,
+      "durationMs": 16000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ+~~~66C~~~1 — Set 1 — 13-22",
+      "startMs": 769000,
+      "durationMs": 18000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22ST=~~~69B~~O1 — Set 2 — 1-3",
+      "startMs": 787000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ!~~~66C~~~1 — Set 2 — 10-10",
+      "startMs": 802000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ-~~~68~~~~2 — Set 2 — 10-11",
+      "startMs": 817000,
+      "durationMs": 18000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SM-~~~69D~~~3 — Set 2 — 10-13",
+      "startMs": 835000,
+      "durationMs": 13000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ!~~~66C~~~1 — Set 2 — 20-19",
+      "startMs": 848000,
+      "durationMs": 20000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ-~~~65B~~~1 — Set 3 — 9-6",
+      "startMs": 868000,
+      "durationMs": 17000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SM-~~~66B~~~2 — Set 3 — 9-7",
+      "startMs": 885000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ-~~~65~~~~1 — Set 3 — 15-14",
+      "startMs": 900000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22ST+~~~61~~~~1 — Set 3 — 24-22",
+      "startMs": 915000,
+      "durationMs": 22000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22ST=~~~66~~~O2T — Set 3 — 24-23",
+      "startMs": 937000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ-~~~66C~~N1 — Set 4 — 5-3",
+      "startMs": 952000,
+      "durationMs": 13000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battuta — *22SQ+~~~66C~~~1 — Set 4 — 15-13",
+      "startMs": 965000,
+      "durationMs": 14000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Titolo: Ricezione Singolo Giocatore",
+      "startMs": 979000,
+      "durationMs": 4000,
+      "groupIdx": 1,
+      "isTitle": true
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM#~~~68AO — Set 1 — 3-6",
+      "startMs": 983000,
+      "durationMs": 17000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ#~~~66BR — Set 1 — 5-8",
+      "startMs": 1000000,
+      "durationMs": 20000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ#~~~57AO — Set 1 — 10-11",
+      "startMs": 1020000,
+      "durationMs": 12000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM-~~~66CL — Set 1 — 15-15",
+      "startMs": 1032000,
+      "durationMs": 23000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM+~~~66CO~~B1 — Set 1 — 18-15",
+      "startMs": 1055000,
+      "durationMs": 12000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ+~~~57AM~~E1 — Set 1 — 19-16",
+      "startMs": 1067000,
+      "durationMs": 16000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM!~~~57AM~~C2 — Set 1 — 22-18",
+      "startMs": 1083000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ+~~~99DM~~C2 — Set 1 — 23-21",
+      "startMs": 1096000,
+      "durationMs": 15000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ=~~~69DW~U — Set 1 — 24-21",
+      "startMs": 1111000,
+      "durationMs": 10000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM!~~~67AO~~C2 — Set 2 — 3-3",
+      "startMs": 1121000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ+~~~66CL~~C1 — Set 2 — 11-9",
+      "startMs": 1134000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ!~~~15BM~~C2 — Set 2 — 14-13",
+      "startMs": 1147000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM+~~~67AO~~B1 — Set 2 — 15-14",
+      "startMs": 1160000,
+      "durationMs": 15000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM+~~~58DO — Set 2 — 18-18",
+      "startMs": 1175000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ+~~~17AM~~A1 — Set 2 — 22-20",
+      "startMs": 1189000,
+      "durationMs": 22000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ-~~~98AW — Set 3 — 2-1",
+      "startMs": 1211000,
+      "durationMs": 15000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM#~~~68AO — Set 3 — 10-9",
+      "startMs": 1226000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM#~~~69DL — Set 3 — 18-18",
+      "startMs": 1240000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM#~~~69DO — Set 3 — 19-18",
+      "startMs": 1254000,
+      "durationMs": 28000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM+~~~61CO~~C1 — Set 3 — 26-25",
+      "startMs": 1282000,
+      "durationMs": 20000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM!~~~69CM~~C2 — Set 1 — 2-1",
+      "startMs": 1302000,
+      "durationMs": 16000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ-~~~66~R — Set 1 — 4-5",
+      "startMs": 1318000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ+~~~57DL~~C1 — Set 1 — 9-9",
+      "startMs": 1331000,
+      "durationMs": 15000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM+~~~68BO~~C1 — Set 1 — 10-10",
+      "startMs": 1346000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ+~~~66DM~~C1 — Set 1 — 15-13",
+      "startMs": 1359000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ-~~~55CO — Set 1 — 18-16",
+      "startMs": 1373000,
+      "durationMs": 20000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM#~~~69DO — Set 1 — 19-17",
+      "startMs": 1393000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ!~~~66CM~~C2 — Set 1 — 21-19",
+      "startMs": 1406000,
+      "durationMs": 15000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ!~~~16~M~~A2 — Set 2 — 15-19",
+      "startMs": 1421000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ!~~~65DR~~C2 — Set 2 — 20-22",
+      "startMs": 1435000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM#~~~67AO — Set 2 — 22-24",
+      "startMs": 1449000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM#~~~18AO — Set 3 — 1-0",
+      "startMs": 1462000,
+      "durationMs": 16000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM#~~~18AO — Set 3 — 2-0",
+      "startMs": 1478000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RT#~~~78AR — Set 3 — 3-1",
+      "startMs": 1491000,
+      "durationMs": 18000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ!~~~51BR~~C2 — Set 3 — 10-12",
+      "startMs": 1509000,
+      "durationMs": 17000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ!~~~66CR~~C2 — Set 3 — 15-16",
+      "startMs": 1526000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM#~~~18BO — Set 3 — 21-18",
+      "startMs": 1540000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ+~~~16AR~~A1 — Set 3 — 23-22",
+      "startMs": 1553000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM-~~~18~O — Set 4 — 8-2",
+      "startMs": 1566000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ-~~~55AM — Set 4 — 9-3",
+      "startMs": 1580000,
+      "durationMs": 19000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ+~~~68BM~~C1 — Set 4 — 14-7",
+      "startMs": 1599000,
+      "durationMs": 26000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ!~~~66AL~~C2 — Set 4 — 15-7",
+      "startMs": 1625000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM#~~~18DO — Set 4 — 17-10",
+      "startMs": 1638000,
+      "durationMs": 16000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ-~~~55BO — Set 4 — 20-12",
+      "startMs": 1654000,
+      "durationMs": 18000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ#~~~16CM — Set 4 — 24-18",
+      "startMs": 1672000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ+~~~16CM~~C1 — Set 5 — 5-6",
+      "startMs": 1686000,
+      "durationMs": 17000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ!~~~58AM~~B2 — Set 5 — 11-11",
+      "startMs": 1703000,
+      "durationMs": 22000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ=~~~51AR — Set 5 — 12-11",
+      "startMs": 1725000,
+      "durationMs": 10000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ+~~~11BR~~C1 — Set 1 — 1-0",
+      "startMs": 1735000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ#~~~96CM — Set 1 — 2-1",
+      "startMs": 1749000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ#~~~98DM — Set 1 — 3-1",
+      "startMs": 1763000,
+      "durationMs": 21000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ#~~~98AW — Set 1 — 4-1",
+      "startMs": 1784000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM+~~~78DO~~C1 — Set 1 — 5-2",
+      "startMs": 1798000,
+      "durationMs": 25000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM+~~~51DO~~C1 — Set 1 — 6-2",
+      "startMs": 1823000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ/~~~76CR — Set 1 — 7-6",
+      "startMs": 1836000,
+      "durationMs": 20000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ#~~~65BM — Set 1 — 9-8",
+      "startMs": 1856000,
+      "durationMs": 15000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RT#~~~65CO — Set 1 — 10-8",
+      "startMs": 1871000,
+      "durationMs": 20000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ-~~~67DL — Set 1 — 11-8",
+      "startMs": 1891000,
+      "durationMs": 15000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RT-~~~67AM — Set 1 — 13-8",
+      "startMs": 1906000,
+      "durationMs": 18000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ#~~~67AM — Set 1 — 14-8",
+      "startMs": 1924000,
+      "durationMs": 20000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ!~~~65CO~~K2 — Set 1 — 15-8",
+      "startMs": 1944000,
+      "durationMs": 18000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM#~~~58DR — Set 1 — 17-9",
+      "startMs": 1962000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ+~~~91CM~~C1 — Set 1 — 18-10",
+      "startMs": 1976000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ/~~~66CM — Set 1 — 19-12",
+      "startMs": 1989000,
+      "durationMs": 15000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ+~~~67AO~~C1 — Set 1 — 23-16",
+      "startMs": 2004000,
+      "durationMs": 16000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM#~~~57AO — Set 1 — 24-19",
+      "startMs": 2020000,
+      "durationMs": 21000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ+~~~91CM~~C1 — Set 1 — 25-24",
+      "startMs": 2041000,
+      "durationMs": 15000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ+~~~91CL~~B1 — Set 2 — 0-0",
+      "startMs": 2056000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM-~~~57DO — Set 2 — 2-2",
+      "startMs": 2069000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM!~~~76CO~~K2 — Set 2 — 3-2",
+      "startMs": 2082000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RT#~~~61AO — Set 2 — 5-5",
+      "startMs": 2095000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM-~~~58DR — Set 2 — 6-8",
+      "startMs": 2109000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ+~~~11BL~~C1 — Set 2 — 7-10",
+      "startMs": 2122000,
+      "durationMs": 15000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM+~~~76BM~~B1 — Set 2 — 9-13",
+      "startMs": 2137000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ!~~~67AO~~C2 — Set 2 — 11-15",
+      "startMs": 2151000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ!~~~65BR~~B2 — Set 2 — 17-24",
+      "startMs": 2165000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ!~~~96BM~~B2 — Set 3 — 1-1",
+      "startMs": 2179000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ+~~~96BM~~A1 — Set 3 — 3-2",
+      "startMs": 2193000,
+      "durationMs": 22000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM+~~~78DO~~C1 — Set 3 — 4-3",
+      "startMs": 2215000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM+~~~58AO~~A1 — Set 3 — 5-3",
+      "startMs": 2229000,
+      "durationMs": 12000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ#~~~67AO — Set 3 — 7-5",
+      "startMs": 2241000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ#~~~67AO — Set 3 — 8-5",
+      "startMs": 2255000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM+~~~58AO~~C1 — Set 3 — 12-10",
+      "startMs": 2269000,
+      "durationMs": 12000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM!~~~57AO — Set 3 — 17-18",
+      "startMs": 2281000,
+      "durationMs": 17000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM#~~~57AO — Set 3 — 18-18",
+      "startMs": 2298000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ#~~~66AM — Set 3 — 20-21",
+      "startMs": 2312000,
+      "durationMs": 17000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ-~~~66DL — Set 3 — 23-22",
+      "startMs": 2329000,
+      "durationMs": 19000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM#~~~99CO — Set 4 — 0-0",
+      "startMs": 2348000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ#~~~68AM — Set 4 — 1-1",
+      "startMs": 2361000,
+      "durationMs": 15000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM#~~~57AO — Set 4 — 5-6",
+      "startMs": 2376000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RT#~~~67AO — Set 4 — 16-14",
+      "startMs": 2390000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM+~~~59AM~~C1 — Set 4 — 21-16",
+      "startMs": 2404000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM+~~~59AR~~A1 — Set 4 — 22-16",
+      "startMs": 2418000,
+      "durationMs": 22000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM!~~~16D~~~C2 — Set 1 — 2-3",
+      "startMs": 2440000,
+      "durationMs": 22000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RT#~~~57A — Set 1 — 4-5",
+      "startMs": 2462000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ!~~~75C~~~C2 — Set 1 — 5-7",
+      "startMs": 2475000,
+      "durationMs": 16000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM+~~~18A~~~C1 — Set 1 — 8-13",
+      "startMs": 2491000,
+      "durationMs": 16000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM-~~~19 — Set 1 — 14-22",
+      "startMs": 2507000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM+~~~19D~~~C1 — Set 1 — 15-22",
+      "startMs": 2520000,
+      "durationMs": 17000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ!~~~16C~~~B2 — Set 1 — 16-23",
+      "startMs": 2537000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ-~~~96C — Set 1 — 17-23",
+      "startMs": 2551000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ=~~~98 — Set 1 — 20-23",
+      "startMs": 2564000,
+      "durationMs": 10000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ#~~~96B — Set 1 — 21-23",
+      "startMs": 2574000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ+~~~11C~~~C1 — Set 2 — 2-3",
+      "startMs": 2587000,
+      "durationMs": 14000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM!~~~19D — Set 2 — 6-6",
+      "startMs": 2601000,
+      "durationMs": 17000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM#~~~18 — Set 2 — 7-6",
+      "startMs": 2618000,
+      "durationMs": 16000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ#~~~16B — Set 2 — 11-13",
+      "startMs": 2634000,
+      "durationMs": 15000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM+~~~19D~~~C1 — Set 2 — 15-15",
+      "startMs": 2649000,
+      "durationMs": 23000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM!~~~18A~~~A2 — Set 2 — 16-15",
+      "startMs": 2672000,
+      "durationMs": 12000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ#~~~91 — Set 2 — 22-19",
+      "startMs": 2684000,
+      "durationMs": 12000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM+~~~56C~~~E1 — Set 3 — 0-0",
+      "startMs": 2696000,
+      "durationMs": 12000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RT+~~~76A~~~E1 — Set 3 — 10-7",
+      "startMs": 2708000,
+      "durationMs": 11000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ!~~~66~~~~C2 — Set 3 — 12-10",
+      "startMs": 2719000,
+      "durationMs": 25000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM!~~~17D~~~C2 — Set 3 — 14-12",
+      "startMs": 2744000,
+      "durationMs": 16000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ!~~~66B~~~A2 — Set 3 — 18-16",
+      "startMs": 2760000,
+      "durationMs": 20000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RM+~~~57A~~~C1 — Set 3 — 19-18",
+      "startMs": 2780000,
+      "durationMs": 11000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ=~~~65C — Set 3 — 23-21",
+      "startMs": 2791000,
+      "durationMs": 10000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ=~~~75B — Set 4 — 1-0",
+      "startMs": 2801000,
+      "durationMs": 10000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ-~~~66C — Set 4 — 8-5",
+      "startMs": 2811000,
+      "durationMs": 28000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RT!~~~75B~~~B2 — Set 4 — 10-6",
+      "startMs": 2839000,
+      "durationMs": 13000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Ricezione Singolo Giocatore — *22RQ/~~~75B — Set 4 — 11-10",
+      "startMs": 2852000,
+      "durationMs": 18000,
+      "groupIdx": 1
+    },
+    {
+      "label": "Titolo: Attacco dopo Rice",
+      "startMs": 2870000,
+      "durationMs": 4000,
+      "groupIdx": 3,
+      "isTitle": true
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~42BT2~R — Set 1 — 1-4",
+      "startMs": 2874000,
+      "durationMs": 12000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AM-XP~83AT2~R~~R — Set 1 — 5-8",
+      "startMs": 2886000,
+      "durationMs": 16000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT=X5~46DH2~R — Set 1 — 8-10",
+      "startMs": 2902000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~46BH2~RRE — Set 1 — 9-10",
+      "startMs": 2912000,
+      "durationMs": 12000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT/X5~47CH2~R — Set 1 — 21-18",
+      "startMs": 2924000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~48AH1~R — Set 2 — 0-0",
+      "startMs": 2934000,
+      "durationMs": 12000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AM+XP~85DH3~RNE — Set 2 — 8-6",
+      "startMs": 2946000,
+      "durationMs": 13000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AM#XP~85DH2~R~~R — Set 2 — 11-9",
+      "startMs": 2959000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~42AT2~R — Set 2 — 13-11",
+      "startMs": 2969000,
+      "durationMs": 12000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~46AH2~R~~R — Set 2 — 15-14",
+      "startMs": 2981000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~41CH2~RNE — Set 2 — 20-19",
+      "startMs": 2991000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT!X5~41BH2~RNM — Set 3 — 6-6",
+      "startMs": 3001000,
+      "durationMs": 19000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~45CH2~R — Set 3 — 9-8",
+      "startMs": 3020000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~47BH2~R — Set 3 — 25-24",
+      "startMs": 3030000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AH#V5~41BH2~R — Set 1 — 16-14",
+      "startMs": 3040000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT!X5~42AT1~R — Set 1 — 17-15",
+      "startMs": 3050000,
+      "durationMs": 17000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AH-V5~46~P3~R~~R — Set 1 — 18-16",
+      "startMs": 3067000,
+      "durationMs": 15000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AH!V5~46AH3~R — Set 1 — 22-23",
+      "startMs": 3082000,
+      "durationMs": 23000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AM#XP~86DH0~R — Set 2 — 1-1",
+      "startMs": 3105000,
+      "durationMs": 12000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~44AH2~RNER — Set 2 — 20-22",
+      "startMs": 3117000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AM=XR~85DH3~R — Set 3 — 4-4",
+      "startMs": 3127000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AM#XR~86CH1~RRE — Set 3 — 5-4",
+      "startMs": 3137000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~47CH2~R — Set 3 — 8-9",
+      "startMs": 3147000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT=X5~47DH2~R — Set 3 — 14-16",
+      "startMs": 3157000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AH-V5~45DH3~R — Set 3 — 17-16",
+      "startMs": 3167000,
+      "durationMs": 16000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT-X5~47~H2~R — Set 3 — 26-25",
+      "startMs": 3183000,
+      "durationMs": 28000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AM#XP~86~H0~R — Set 4 — 3-1",
+      "startMs": 3211000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AH!V5~45~H3~R~~R — Set 4 — 20-12",
+      "startMs": 3221000,
+      "durationMs": 15000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AU-C5~42CT0~R — Set 4 — 21-13",
+      "startMs": 3236000,
+      "durationMs": 14000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~49DP1~R — Set 4 — 22-15",
+      "startMs": 3250000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~46~H4~RNM — Set 5 — 8-8",
+      "startMs": 3260000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT/X5~41~H2~R — Set 5 — 9-10",
+      "startMs": 3270000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~46AH4~RRM — Set 5 — 10-10",
+      "startMs": 3280000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AU-C5~48AT2~R — Set 1 — 8-6",
+      "startMs": 3290000,
+      "durationMs": 17000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AH=V5~45DH2~R~~R — Set 1 — 11-8",
+      "startMs": 3307000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT-X5~46AH2~RRE — Set 1 — 12-8",
+      "startMs": 3317000,
+      "durationMs": 13000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT-X5~46DH2~R~~R — Set 1 — 15-8",
+      "startMs": 3330000,
+      "durationMs": 14000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AM#XP~81DH~~R~~R — Set 2 — 0-0",
+      "startMs": 3344000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~41AH4~R~~R — Set 2 — 5-5",
+      "startMs": 3354000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AH#V5~41DH3~R~~R — Set 2 — 6-8",
+      "startMs": 3364000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AM#XP~81DH~~R~~R — Set 2 — 9-13",
+      "startMs": 3374000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT+X5~46DH2~RNM — Set 2 — 10-14",
+      "startMs": 3384000,
+      "durationMs": 19000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~41AH2~R — Set 2 — 16-23",
+      "startMs": 3403000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~46DH1~R — Set 3 — 9-6",
+      "startMs": 3413000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AU+C5~46BH2~R — Set 3 — 14-11",
+      "startMs": 3423000,
+      "durationMs": 42000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT+X5~45CH4~R~~R — Set 3 — 17-18",
+      "startMs": 3465000,
+      "durationMs": 14000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~47CH1~R~~R — Set 3 — 18-18",
+      "startMs": 3479000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AM-XP~88BT~~RNE — Set 3 — 22-22",
+      "startMs": 3489000,
+      "durationMs": 16000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AM#XP~85CH~~R — Set 4 — 2-2",
+      "startMs": 3505000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~41AH2~R — Set 4 — 3-3",
+      "startMs": 3515000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AM#XR~86AH~~R — Set 4 — 7-8",
+      "startMs": 3525000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT/X5~46DH2~RNE — Set 4 — 17-14",
+      "startMs": 3535000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~46AH1~RRM — Set 4 — 18-14",
+      "startMs": 3545000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~45~H2~R — Set 1 — 1-2",
+      "startMs": 3555000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~45~H2~RNMR — Set 1 — 5-7",
+      "startMs": 3565000,
+      "durationMs": 12000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~47CH2~R — Set 1 — 6-8",
+      "startMs": 3577000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AM#XR~86BH0~R — Set 1 — 10-16",
+      "startMs": 3587000,
+      "durationMs": 12000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AU+C5~41~H2~R — Set 2 — 1-2",
+      "startMs": 3599000,
+      "durationMs": 21000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AH-V5~48~T2~R — Set 2 — 8-7",
+      "startMs": 3620000,
+      "durationMs": 27000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT+X5~46~H2~R — Set 2 — 10-9",
+      "startMs": 3647000,
+      "durationMs": 15000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AH-V5~45~H3~R — Set 2 — 19-17",
+      "startMs": 3662000,
+      "durationMs": 30000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~48~P2~R — Set 2 — 20-18",
+      "startMs": 3692000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AM#XP~86DH0~RNER — Set 2 — 22-19",
+      "startMs": 3702000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AH/V5~46~H2~R — Set 3 — 3-3",
+      "startMs": 3712000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT+X5~42~P2~RRM — Set 3 — 4-3",
+      "startMs": 3722000,
+      "durationMs": 13000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AH+V5~48~T1~R — Set 3 — 5-4",
+      "startMs": 3735000,
+      "durationMs": 14000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT/X5~46~H2~RNE — Set 3 — 7-4",
+      "startMs": 3749000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT!X5~42~T1~RRM — Set 3 — 8-4",
+      "startMs": 3759000,
+      "durationMs": 13000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~45CH2~R — Set 3 — 13-11",
+      "startMs": 3772000,
+      "durationMs": 12000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~46DH2~R~~R — Set 3 — 19-18",
+      "startMs": 3784000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT+X5~47~H1~R — Set 3 — 20-20",
+      "startMs": 3794000,
+      "durationMs": 20000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AU=C5~41~P1ZR — Set 3 — 21-21",
+      "startMs": 3814000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~42~T2~R — Set 4 — 3-1",
+      "startMs": 3824000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~46~H2~R — Set 4 — 12-10",
+      "startMs": 3834000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT=X5~45~H2~R — Set 4 — 13-11",
+      "startMs": 3844000,
+      "durationMs": 12000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AT#X5~45BH2~RRE — Set 4 — 14-11",
+      "startMs": 3856000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Attacco dopo Rice — *22AM/XP~86~T1~R — Set 4 — 17-13",
+      "startMs": 3866000,
+      "durationMs": 10000,
+      "groupIdx": 3
+    },
+    {
+      "label": "Titolo: Contrattacco",
+      "startMs": 3876000,
+      "durationMs": 4000,
+      "groupIdx": 4,
+      "isTitle": true
+    },
+    {
+      "label": "Contrattacco — *22AT#X5~47BH2~R~~C — Set 1 — 0-0",
+      "startMs": 3880000,
+      "durationMs": 12000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AO#PR~34AH0~R — Set 2 — 2-2",
+      "startMs": 3892000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH=V5~45DH2~R~~C — Set 2 — 2-3",
+      "startMs": 3902000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AU#C5~47BH4~R~~C — Set 2 — 13-12",
+      "startMs": 3912000,
+      "durationMs": 12000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH#V5~47DH3~R~~C — Set 2 — 22-20",
+      "startMs": 3924000,
+      "durationMs": 12000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AT=X5~44DH2NR~~C — Set 3 — 4-6",
+      "startMs": 3936000,
+      "durationMs": 12000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH-V5~49BT2~R~~C — Set 3 — 6-6",
+      "startMs": 3948000,
+      "durationMs": 15000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH/V5~45CH2~R~~C — Set 3 — 7-7",
+      "startMs": 3963000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH-V5~45CT2~R~~C — Set 3 — 15-15",
+      "startMs": 3973000,
+      "durationMs": 14000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AT/X5~41BH2~R~~C — Set 3 — 22-21",
+      "startMs": 3987000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH-V5~46AH3~R~~C — Set 1 — 0-0",
+      "startMs": 3997000,
+      "durationMs": 45000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AT/X5~42BT2~R~~C — Set 1 — 0-0",
+      "startMs": 4042000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH/V5~45~H3~R~~C — Set 1 — 6-7",
+      "startMs": 4052000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH!VP~81AP3~R~~C — Set 1 — 10-11",
+      "startMs": 4062000,
+      "durationMs": 19000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH-VP~81AH1~R~~C — Set 1 — 10-11",
+      "startMs": 4081000,
+      "durationMs": 15000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH-V5~43BT2~R~~C — Set 1 — 22-23",
+      "startMs": 4096000,
+      "durationMs": 18000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AT#X5~41DH1~R~~C — Set 2 — 4-4",
+      "startMs": 4114000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH-V5~47AH1~R~~C — Set 2 — 5-6",
+      "startMs": 4124000,
+      "durationMs": 24000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AT=X5~47DH1~R~~C — Set 2 — 5-6",
+      "startMs": 4148000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AM-XP~84AT2~R~~C — Set 3 — 9-12",
+      "startMs": 4158000,
+      "durationMs": 13000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH-V5~45AH2~R~~C — Set 3 — 26-25",
+      "startMs": 4171000,
+      "durationMs": 19000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AT#X5~47CH2~R~~C — Set 3 — 26-25",
+      "startMs": 4190000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AT/X6~24CT2~R~~C — Set 4 — 20-13",
+      "startMs": 4200000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AT-X5~46AH2~R~~C — Set 4 — 21-14",
+      "startMs": 4210000,
+      "durationMs": 18000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AM#XP~85BH4~R~~C — Set 4 — 22-16",
+      "startMs": 4228000,
+      "durationMs": 12000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH#V5~46AH3~R~~C — Set 5 — 8-9",
+      "startMs": 4240000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AT#X5~45CH2~R~~C — Set 1 — 6-5",
+      "startMs": 4250000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AT#X5~41AH2~R~~C — Set 1 — 8-6",
+      "startMs": 4260000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH!V5~41BP2~R~~C — Set 2 — 9-14",
+      "startMs": 4270000,
+      "durationMs": 14000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH#V5~46AH0~R~~C — Set 2 — 15-21",
+      "startMs": 4284000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH-V5~41DP2~R~~C — Set 3 — 13-11",
+      "startMs": 4294000,
+      "durationMs": 20000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AU!C5~48BP2~R~~C — Set 3 — 14-11",
+      "startMs": 4314000,
+      "durationMs": 34000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AO-P2~33~H~~R — Set 3 — 14-11",
+      "startMs": 4348000,
+      "durationMs": 16000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH-V5~45AH1~R~~C — Set 3 — 15-12",
+      "startMs": 4364000,
+      "durationMs": 23000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AT-X5~46CH2~R~~C — Set 3 — 15-12",
+      "startMs": 4387000,
+      "durationMs": 14000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AT#X5~41DH2~R~~C — Set 3 — 15-13",
+      "startMs": 4401000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AT+X5~41DH2~R~~C — Set 3 — 15-15",
+      "startMs": 4411000,
+      "durationMs": 18000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AT#X5~41AH4~R~~C — Set 3 — 15-15",
+      "startMs": 4429000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH=V5~45DH2~R~~C — Set 4 — 3-4",
+      "startMs": 4439000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH#V5~46AH3~R~~C — Set 4 — 13-12",
+      "startMs": 4449000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AT#X8~96AH4~R~~C — Set 4 — 23-18",
+      "startMs": 4459000,
+      "durationMs": 12000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AT#X5~41~H1~R~~C — Set 1 — 6-10",
+      "startMs": 4471000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AU+C5~45~H2~R~~C — Set 1 — 7-11",
+      "startMs": 4481000,
+      "durationMs": 16000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AM#XP~81~H2~R~~C — Set 1 — 7-12",
+      "startMs": 4497000,
+      "durationMs": 12000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH#V5~45~H3~R~~C — Set 1 — 10-17",
+      "startMs": 4509000,
+      "durationMs": 12000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH#V5~45~H2~R~~C — Set 2 — 8-7",
+      "startMs": 4521000,
+      "durationMs": 12000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AT+X5~45~H2~R~~C — Set 2 — 19-17",
+      "startMs": 4533000,
+      "durationMs": 23000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH!V5~45~H3~R~~C — Set 2 — 19-17",
+      "startMs": 4556000,
+      "durationMs": 16000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AM+XP~89DT2~R~~C — Set 2 — 23-20",
+      "startMs": 4572000,
+      "durationMs": 15000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH#V5~45~H1~R~~C — Set 3 — 8-4",
+      "startMs": 4587000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AM!XP~83~T1~R~~C — Set 3 — 12-10",
+      "startMs": 4597000,
+      "durationMs": 14000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AT#X5~46~H1~R~~C — Set 3 — 20-20",
+      "startMs": 4611000,
+      "durationMs": 10000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Contrattacco — *22AH#V5~45~H3~R~~C — Set 4 — 10-7",
+      "startMs": 4621000,
+      "durationMs": 12000,
+      "groupIdx": 4
+    },
+    {
+      "label": "Titolo: Muro",
+      "startMs": 4633000,
+      "durationMs": 4000,
+      "groupIdx": 5,
+      "isTitle": true
+    },
+    {
+      "label": "Muro — *22BH#~~~~2~~3 — Set 1 — 0-2",
+      "startMs": 4637000,
+      "durationMs": 10000,
+      "groupIdx": 5
+    },
+    {
+      "label": "Muro — *22BQ+~~~~3~~2 — Set 2 — 11-10",
+      "startMs": 4647000,
+      "durationMs": 15000,
+      "groupIdx": 5
+    },
+    {
+      "label": "Muro — *22BT=~~~~4~~2O — Set 2 — 13-13",
+      "startMs": 4662000,
+      "durationMs": 12000,
+      "groupIdx": 5
+    },
+    {
+      "label": "Muro — *22BT!~~~~4~~2 — Set 2 — 18-19",
+      "startMs": 4674000,
+      "durationMs": 15000,
+      "groupIdx": 5
+    },
+    {
+      "label": "Muro — *22BT=~~~~4~~2I — Set 3 — 15-15",
+      "startMs": 4689000,
+      "durationMs": 12000,
+      "groupIdx": 5
+    },
+    {
+      "label": "Muro — *22BT=~~~~4~~1O — Set 3 — 24-24",
+      "startMs": 4701000,
+      "durationMs": 12000,
+      "groupIdx": 5
+    },
+    {
+      "label": "Muro — *22BT-~~~~4~~2 — Set 1 — 22-23",
+      "startMs": 4713000,
+      "durationMs": 15000,
+      "groupIdx": 5
+    },
+    {
+      "label": "Muro — *22BQ=~~~~3~~1 — Set 2 — 10-13",
+      "startMs": 4728000,
+      "durationMs": 10000,
+      "groupIdx": 5
+    },
+    {
+      "label": "Muro — *22BQ=~~~~4~~4 — Set 3 — 26-26",
+      "startMs": 4738000,
+      "durationMs": 10000,
+      "groupIdx": 5
+    },
+    {
+      "label": "Muro — *22BH=~~~~4~~2 — Set 1 — 12-8",
+      "startMs": 4748000,
+      "durationMs": 10000,
+      "groupIdx": 5
+    },
+    {
+      "label": "Muro — *22BT#~~~~4~~4 — Set 1 — 23-17",
+      "startMs": 4758000,
+      "durationMs": 10000,
+      "groupIdx": 5
+    },
+    {
+      "label": "Muro — *22BT=~~~~4~~2 — Set 3 — 8-6",
+      "startMs": 4768000,
+      "durationMs": 10000,
+      "groupIdx": 5
+    },
+    {
+      "label": "Muro — *22BT+~~~~4~~2 — Set 1 — 0-1",
+      "startMs": 4778000,
+      "durationMs": 17000,
+      "groupIdx": 5
+    },
+    {
+      "label": "Muro — *22BQ=~~~~3~~1S — Set 1 — 5-8",
+      "startMs": 4795000,
+      "durationMs": 10000,
+      "groupIdx": 5
+    },
+    {
+      "label": "Muro — *22BH#~~~~2~~3 — Set 1 — 6-9",
+      "startMs": 4805000,
+      "durationMs": 12000,
+      "groupIdx": 5
+    },
+    {
+      "label": "Muro — *22BT-~~~~4~~2 — Set 2 — 8-7",
+      "startMs": 4817000,
+      "durationMs": 15000,
+      "groupIdx": 5
+    },
+    {
+      "label": "Muro — *22BU=~~~~4~~2S — Set 2 — 9-9",
+      "startMs": 4832000,
+      "durationMs": 10000,
+      "groupIdx": 5
+    },
+    {
+      "label": "Muro — *22BT=~~~~4~~2S — Set 3 — 8-5",
+      "startMs": 4842000,
+      "durationMs": 10000,
+      "groupIdx": 5
+    },
+    {
+      "label": "Muro — *22BH/~~~~4~~3 — Set 4 — 2-1",
+      "startMs": 4852000,
+      "durationMs": 10000,
+      "groupIdx": 5
+    }
+  ]
+};
+// =========================================================
+
+const trackListEl   = document.getElementById('trackList');
+const nowPlayingEl  = document.getElementById('nowPlaying');
+const trackCounter  = document.getElementById('trackCounter');
+const totalCount    = document.getElementById('totalCount');
+const prevBtn       = document.getElementById('prevBtn');
+const nextBtn       = document.getElementById('nextBtn');
+const playPauseBtn  = document.getElementById('playPauseBtn');
+const stopAtEndCb   = document.getElementById('stopAtEnd');
+const pageTitle     = document.getElementById('pageTitle');
+const videoError    = document.getElementById('videoError');
+const errId         = document.getElementById('errId');
+const playerSurface = document.getElementById('playerSurface');
+const actionsToggleBtn = document.getElementById('actionsToggleBtn');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+let player          = null;
+let playerReady     = false;
+let currentIdx      = -1;
+
+document.title = (DATA.title || 'Player') + ' — Player Montaggio';
+pageTitle.textContent = DATA.title || 'Montaggio';
+const actionCount = DATA.chapters.filter(c => !c.isTitle).length;
+const titleCount = DATA.chapters.length - actionCount;
+totalCount.textContent = ' (' + actionCount + (titleCount ? ' azioni · ' + titleCount + ' titoli' : '') + ')';
+errId.textContent = YOUTUBE_ID;
+
+renderTrackList();
+setCurrentIdx(-1);
+updatePlayBtn();
+
+// --- Caricamento IFrame Player API di YouTube ---
+(function loadYT() {
+  if (window.YT && window.YT.Player) { onYouTubeIframeAPIReady(); return; }
+  const tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  document.head.appendChild(tag);
+})();
+
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('ytplayer', {
+    width: '100%',
+    height: '100%',
+    videoId: YOUTUBE_ID,
+    playerVars: {
+      rel: 0,            // limita i video correlati a fine clip
+      modestbranding: 1, // (deprecato da YouTube, innocuo)
+      playsinline: 1,
+      controls: 1,
+      fs: 0
+    },
+    events: {
+      onReady: onPlayerReady,
+      onStateChange: onPlayerStateChange,
+      onError: onPlayerError
+    }
+  });
+}
+// l'API cerca questa funzione nel global scope
+window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+
+function onPlayerReady() {
+  playerReady = true;
+  setInterval(tick, 200); // polling: sostituisce l'evento "timeupdate" del tag <video>
+}
+
+function onPlayerStateChange() { updatePlayBtn(); }
+
+function onPlayerError() { videoError.classList.add('show'); }
+
+// --- Ciclo di aggiornamento (200 ms) ---
+function tick() {
+  if (!playerReady || !player || typeof player.getCurrentTime !== 'function') return;
+  let t;
+  try { t = player.getCurrentTime(); } catch (e) { return; }
+  const tMs = t * 1000;
+  // Check the previous active chapter before advancing the selection: a poll
+  // can arrive after the boundary. Include the final chapter as well.
+  const active = currentIdx >= 0 ? currentIdx : chapterIndexAtMs(tMs);
+  if (stopAtEndCb.checked && active >= 0) {
+    const c = DATA.chapters[active];
+    const endMs = c.startMs + c.durationMs;
+    if (tMs >= endMs - 60 && player.getPlayerState() === 1) {
+      player.pauseVideo();
+      player.seekTo(endMs / 1000, true);
+      setCurrentIdx(chapterIndexAtMs(endMs));
+      return;
+    }
+  }
+  const idx = chapterIndexAtMs(tMs);
+  if (idx !== currentIdx) setCurrentIdx(idx);
+}
+
+function renderTrackList() {
+  trackListEl.innerHTML = '';
+  let lastGroup = -2;
+  let actionNumber = 0;
+  DATA.chapters.forEach((c, i) => {
+    if (DATA.groups && DATA.groups.length > 0 && c.groupIdx !== lastGroup) {
+      const h = document.createElement('div');
+      h.className = 'group-header';
+      h.textContent = (c.groupIdx >= 0 && c.groupIdx < DATA.groups.length)
+        ? DATA.groups[c.groupIdx]
+        : 'Generale';
+      trackListEl.appendChild(h);
+      lastGroup = c.groupIdx;
+    }
+    const row = document.createElement('div');
+    row.className = 'track' + (i === 0 && c.groupIdx === -1 && /copertina/i.test(c.label) ? ' cover' : '');
+    row.dataset.idx = i;
+    row.classList.toggle('title', Boolean(c.isTitle));
+    const number = c.isTitle ? 'Titolo' : String(++actionNumber);
+    row.innerHTML =
+      '<span class="num">' + number + '</span>' +
+      '<span class="label"></span>' +
+      '<span class="dur">' + formatMs(c.durationMs) + '</span>';
+    row.querySelector('.label').textContent = c.label;
+    row.addEventListener('click', () => seekToChapter(i));
+    trackListEl.appendChild(row);
+  });
+}
+
+function chapterIndexAtMs(ms) {
+  for (let i = 0; i < DATA.chapters.length; i++) {
+    const c = DATA.chapters[i];
+    if (ms >= c.startMs && ms < c.startMs + c.durationMs) return i;
+  }
+  if (DATA.chapters.length > 0) {
+    const last = DATA.chapters[DATA.chapters.length - 1];
+    if (ms >= last.startMs) return DATA.chapters.length - 1;
+  }
+  return -1;
+}
+
+function setCurrentIdx(idx) {
+  currentIdx = idx;
+  trackListEl.querySelectorAll('.track').forEach((el) => {
+    el.classList.toggle('active', parseInt(el.dataset.idx, 10) === idx);
+  });
+  const active = trackListEl.querySelector('.track.active');
+  if (active) {
+    const r = active.getBoundingClientRect();
+    const pr = trackListEl.getBoundingClientRect();
+    if (r.top < pr.top || r.bottom > pr.bottom) active.scrollIntoView({ block: 'nearest' });
+  }
+  if (idx >= 0) {
+    const c = DATA.chapters[idx];
+    const number = c.isTitle ? 'Titolo' : DATA.chapters.slice(0, idx + 1).filter(ch => !ch.isTitle).length;
+    nowPlayingEl.innerHTML = '<b>' + number + (c.isTitle ? '' : '.') + '</b> ' + escapeHtml(c.label);
+    trackCounter.textContent = c.isTitle ? 'Titolo' : number + ' / ' + actionCount;
+  } else {
+    nowPlayingEl.textContent = '—';
+    trackCounter.textContent = '—';
+  }
+  prevBtn.disabled = (idx <= 0);
+  nextBtn.disabled = (idx < 0 || idx >= DATA.chapters.length - 1);
+}
+
+function updatePlayBtn() {
+  const playing = playerReady && player && typeof player.getPlayerState === 'function'
+    && player.getPlayerState() === 1;
+  playPauseBtn.textContent = playing ? '❚❚' : '▶';
+}
+
+function seekToChapter(i) {
+  if (i < 0 || i >= DATA.chapters.length) return;
+  if (!playerReady) return;
+  const c = DATA.chapters[i];
+  player.seekTo((c.startMs + 1) / 1000, true);
+  setCurrentIdx(i);
+  player.playVideo();
+}
+
+function gotoPrev() {
+  if (currentIdx > 0) seekToChapter(currentIdx - 1);
+  else if (currentIdx < 0 && DATA.chapters.length > 0) seekToChapter(0);
+}
+function gotoNext() {
+  if (currentIdx >= 0 && currentIdx < DATA.chapters.length - 1) seekToChapter(currentIdx + 1);
+}
+function togglePlay() {
+  if (!playerReady) return;
+  if (player.getPlayerState() === 1) player.pauseVideo();
+  else player.playVideo();
+}
+
+prevBtn.addEventListener('click', gotoPrev);
+nextBtn.addEventListener('click', gotoNext);
+playPauseBtn.addEventListener('click', togglePlay);
+
+function setActionsVisible(visible) {
+  document.body.classList.toggle('actions-hidden', !visible);
+  actionsToggleBtn.setAttribute('aria-expanded', String(visible));
+  actionsToggleBtn.setAttribute('aria-pressed', String(visible));
+}
+
+function updateFullscreenUi() {
+  const active = Boolean(document.fullscreenElement) || document.body.classList.contains('cinema-mode');
+  document.body.classList.toggle('fullscreen-ui', active);
+  fullscreenBtn.setAttribute('aria-pressed', String(active));
+  fullscreenBtn.setAttribute('aria-label', active
+    ? 'Esci da schermo intero'
+    : 'Schermo intero con azioni');
+  const label = fullscreenBtn.querySelector('.button-label');
+  if (label) label.textContent = active ? 'Esci' : 'Schermo intero';
+}
+
+async function toggleFullscreen() {
+  if (document.fullscreenElement) {
+    await document.exitFullscreen();
+    return;
+  }
+  if (document.body.classList.contains('cinema-mode')) {
+    document.body.classList.remove('cinema-mode');
+    updateFullscreenUi();
+    return;
+  }
+  if (playerSurface.requestFullscreen) {
+    try {
+      await playerSurface.requestFullscreen();
+      return;
+    } catch (e) {
+      // Safari mobile può rifiutare il fullscreen della pagina: usa la modalità cinema.
+    }
+  }
+  document.body.classList.add('cinema-mode');
+  updateFullscreenUi();
+}
+
+actionsToggleBtn.addEventListener('click', () => {
+  setActionsVisible(document.body.classList.contains('actions-hidden'));
+});
+fullscreenBtn.addEventListener('click', toggleFullscreen);
+document.addEventListener('fullscreenchange', updateFullscreenUi);
+setActionsVisible(true);
+updateFullscreenUi();
+
+document.addEventListener('keydown', (e) => {
+  if (e.target && /input|textarea/i.test(e.target.tagName)) return;
+  if (e.code === 'Space')      { e.preventDefault(); togglePlay(); }
+  else if (e.code === 'ArrowLeft'  && !e.shiftKey) { e.preventDefault(); gotoPrev(); }
+  else if (e.code === 'ArrowRight' && !e.shiftKey) { e.preventDefault(); gotoNext(); }
+  else if (e.code === 'Home')  { e.preventDefault(); seekToChapter(0); }
+  else if (e.code === 'End')   { e.preventDefault(); seekToChapter(DATA.chapters.length - 1); }
+});
+
+function formatMs(ms) {
+  const totalS = Math.round(ms / 1000);
+  const m = Math.floor(totalS / 60);
+  const s = totalS % 60;
+  if (m === 0) return s + 's';
+  return m + ':' + String(s).padStart(2, '0');
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+</script>
+
+</body>
+</html>
