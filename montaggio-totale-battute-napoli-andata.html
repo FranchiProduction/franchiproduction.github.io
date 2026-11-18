@@ -1,0 +1,2761 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Montaggio totale battute Napoli andata — Player Montaggio</title>
+<meta property="og:title" content="Montaggio totale battute Napoli andata — Player Montaggio">
+<meta property="og:type" content="website">
+<style>
+  :root {
+    --bg: #141416;
+    --panel: #1e1e22;
+    --panel-2: #26262c;
+    --border: #2e2e36;
+    --text: #e9e9ec;
+    --text-dim: #9a9aa3;
+    --accent: #4a9eff;
+    --accent-bg: rgba(74, 158, 255, 0.18);
+    --accent-bg-strong: rgba(74, 158, 255, 0.35);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  body { display: flex; flex-direction: column; }
+
+  header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 10px 16px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    flex: 0 0 auto;
+  }
+  header h1 {
+    margin: 0; font-size: 15px; font-weight: 600;
+    flex: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  header .meta { color: var(--text-dim); font-size: 12px; }
+  header label {
+    display: flex; align-items: center; gap: 6px;
+    color: var(--text-dim); font-size: 12px;
+    cursor: pointer; user-select: none;
+  }
+  header input[type=checkbox] { accent-color: var(--accent); }
+  header .header-actions { display: flex; align-items: center; gap: 8px; }
+  header button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    min-height: 32px; padding: 5px 10px;
+    color: var(--text); background: var(--panel-2);
+    border: 1px solid var(--border); border-radius: 5px;
+    cursor: pointer; font: inherit; font-size: 12px;
+  }
+  header button:hover { background: var(--border); }
+  header button[aria-pressed="true"] {
+    color: #fff; background: #245a91; border-color: var(--accent);
+  }
+
+  main { flex: 1; min-height: 0; display: flex; }
+
+  .player {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column;
+    background: #000;
+  }
+  .video-wrap {
+    flex: 1; min-height: 0;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  #ytplayer { width: 100%; height: 100%; }
+  .video-error {
+    position: absolute; inset: 0;
+    display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; background: var(--bg);
+    text-align: center; padding: 24px;
+  }
+  .video-error.show { display: flex; }
+  .video-error p { color: var(--text-dim); margin: 0; max-width: 480px; }
+  .video-error code {
+    background: var(--panel-2); padding: 2px 6px; border-radius: 3px; font-size: 13px;
+  }
+
+  .transport {
+    flex: 0 0 auto;
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px;
+    background: var(--panel); border-top: 1px solid var(--border);
+  }
+  .transport button {
+    background: var(--panel-2); color: var(--text);
+    border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 4px;
+    cursor: pointer; font: inherit; min-width: 44px;
+  }
+  .transport button:hover:not(:disabled) { background: var(--border); }
+  .transport button:disabled { opacity: 0.4; cursor: default; }
+  .transport .now {
+    flex: 1; min-width: 0;
+    color: var(--text-dim); font-size: 13px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    padding: 0 8px;
+  }
+  .transport .now b { color: var(--text); font-weight: 500; }
+
+  aside {
+    flex: 0 0 320px;
+    background: var(--panel);
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  aside h2 {
+    margin: 0; padding: 10px 14px;
+    font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+    flex: 0 0 auto;
+  }
+  aside h2 .count { color: var(--text); margin-left: 6px; }
+  .tracks { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 0; }
+  .group-header {
+    padding: 10px 14px 4px;
+    font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--accent);
+    border-top: 1px solid var(--border);
+  }
+  .group-header:first-child { border-top: none; }
+  .track {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 14px; cursor: pointer;
+    border-left: 3px solid transparent;
+  }
+  .track:hover { background: var(--panel-2); }
+  .track.active {
+    background: var(--accent-bg);
+    border-left-color: var(--accent);
+  }
+  .track .num {
+    flex: 0 0 auto; color: var(--text-dim);
+    font-variant-numeric: tabular-nums; font-size: 12px;
+    min-width: 24px; text-align: right;
+  }
+  .track.active .num { color: var(--accent); font-weight: 600; }
+  .track .label {
+    flex: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: 13px;
+  }
+  .track .dur {
+    flex: 0 0 auto; color: var(--text-dim);
+    font-variant-numeric: tabular-nums; font-size: 12px;
+  }
+  .track.title .label { font-weight: 600; color: var(--accent); }
+  .track.cover .label { font-style: italic; color: var(--text-dim); }
+
+  @media (max-width: 720px) {
+    main { flex-direction: column; }
+    aside { flex: 1 1 auto; border-left: none; border-top: 1px solid var(--border); }
+    .player { flex: 0 0 auto; max-height: 50vh; }
+    header { gap: 8px; padding: 8px 10px; flex-wrap: wrap; }
+    header .header-actions { margin-left: auto; }
+    header button { min-width: 40px; padding: 5px 8px; }
+    header button .button-label { display: none; }
+  }
+
+  body.actions-hidden aside { display: none; }
+  body.fullscreen-ui { width: 100%; height: 100%; overflow: hidden; }
+  body.fullscreen-ui header { padding-top: max(8px, env(safe-area-inset-top)); }
+  body.fullscreen-ui main { min-height: 0; }
+  body.fullscreen-ui .player { max-height: none; }
+  body.cinema-mode {
+    position: fixed; inset: 0; z-index: 2147483647;
+    width: 100vw; height: 100dvh;
+  }
+
+  @media (max-width: 920px) and (orientation: landscape) {
+    body.fullscreen-ui main { flex-direction: row; }
+    body.fullscreen-ui aside {
+      flex: 0 0 clamp(240px, 36vw, 340px);
+      border-top: none; border-left: 1px solid var(--border);
+    }
+    body.fullscreen-ui .player { flex: 1 1 auto; }
+  }
+
+  .tracks::-webkit-scrollbar { width: 10px; }
+  .tracks::-webkit-scrollbar-track { background: var(--panel); }
+  .tracks::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+  .tracks::-webkit-scrollbar-thumb:hover { background: #3a3a44; }
+</style>
+</head>
+<body id="playerSurface">
+
+<header>
+  <h1 id="pageTitle">Montaggio totale battute Napoli andata</h1>
+  <span class="meta" id="trackCounter">—</span>
+  <label title="Se attivo, alla fine di una traccia il player si ferma anziché passare alla successiva">
+    <input type="checkbox" id="stopAtEnd"> Stop a fine traccia
+  </label>
+  <div class="header-actions">
+    <button id="actionsToggleBtn" type="button" aria-controls="trackPanel" aria-expanded="true" aria-pressed="true">
+      ☰ <span class="button-label">Azioni</span>
+    </button>
+    <button id="fullscreenBtn" type="button" aria-label="Schermo intero con azioni" aria-pressed="false">
+      ⛶ <span class="button-label">Schermo intero</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <div class="player">
+    <div class="video-wrap">
+      <div id="ytplayer"></div>
+      <div class="video-error" id="videoError">
+        <p>Impossibile caricare il video YouTube.<br>
+           Controlla l'ID inserito (<code id="errId"></code>) e la connessione.</p>
+      </div>
+    </div>
+    <div class="transport">
+      <button id="prevBtn" title="Traccia precedente (←)">|◀</button>
+      <button id="playPauseBtn" title="Play/Pausa (Spazio)">▶</button>
+      <button id="nextBtn" title="Traccia successiva (→)">▶|</button>
+      <span class="now" id="nowPlaying">—</span>
+    </div>
+  </div>
+
+  <aside id="trackPanel">
+    <h2>Tracce<span class="count" id="totalCount"></span></h2>
+    <div class="tracks" id="trackList"></div>
+  </aside>
+</main>
+
+<script>
+// ============================================================
+//  >>> INCOLLA QUI L'ID DEL VIDEO YOUTUBE <<<
+//  Esempio: se il link è  https://youtu.be/dQw4w9WgXcQ
+//  oppure  https://www.youtube.com/watch?v=dQw4w9WgXcQ
+//  l'ID è:  dQw4w9WgXcQ
+// ============================================================
+const YOUTUBE_ID = "e_9CoB-AHK8";
+
+// === DATI INIETTATI DAL GENERATORE Qt (NON modificare) ===
+const DATA = {
+  "title": "Montaggio totale battute Napoli andata",
+  "videoFile": "Montaggio totale battute Napoli andata.mp4",
+  "groups": [
+    "Montaggio totale battute Napoli andata"
+  ],
+  "chapters": [
+    {
+      "label": "Titolo: Montaggio totale battute Napoli andata",
+      "startMs": 0,
+      "durationMs": 3000,
+      "groupIdx": 0,
+      "isTitle": true
+    },
+    {
+      "label": "Battute 1",
+      "startMs": 3000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 2",
+      "startMs": 9000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 3",
+      "startMs": 17000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 4",
+      "startMs": 23000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 5",
+      "startMs": 33000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 6",
+      "startMs": 42000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 7",
+      "startMs": 52000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 8",
+      "startMs": 58000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 9",
+      "startMs": 66000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 10",
+      "startMs": 75000,
+      "durationMs": 10000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 11",
+      "startMs": 86000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 12",
+      "startMs": 92000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 13",
+      "startMs": 102000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 14",
+      "startMs": 108000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 15",
+      "startMs": 114000,
+      "durationMs": 14000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 16",
+      "startMs": 129000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 17",
+      "startMs": 135000,
+      "durationMs": 23000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 18",
+      "startMs": 159000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 19",
+      "startMs": 168000,
+      "durationMs": 10000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 20",
+      "startMs": 179000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 21",
+      "startMs": 195000,
+      "durationMs": 17000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 22",
+      "startMs": 213000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 23",
+      "startMs": 221000,
+      "durationMs": 19000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 24",
+      "startMs": 241000,
+      "durationMs": 10000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 25",
+      "startMs": 252000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 26",
+      "startMs": 262000,
+      "durationMs": 39000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 27",
+      "startMs": 302000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 28",
+      "startMs": 312000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 29",
+      "startMs": 322000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 30",
+      "startMs": 330000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 31",
+      "startMs": 338000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 32",
+      "startMs": 346000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 33",
+      "startMs": 354000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 34",
+      "startMs": 362000,
+      "durationMs": 10000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 35",
+      "startMs": 373000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 36",
+      "startMs": 381000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 37",
+      "startMs": 389000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 38",
+      "startMs": 397000,
+      "durationMs": 20000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 39",
+      "startMs": 418000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 40",
+      "startMs": 426000,
+      "durationMs": 11000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 41",
+      "startMs": 438000,
+      "durationMs": 10000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 42",
+      "startMs": 449000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 43",
+      "startMs": 455000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 44",
+      "startMs": 464000,
+      "durationMs": 21000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 45",
+      "startMs": 486000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 46",
+      "startMs": 496000,
+      "durationMs": 22000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 47",
+      "startMs": 519000,
+      "durationMs": 13000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 48",
+      "startMs": 533000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Titolo: Montaggio totale battute Napoli andata",
+      "startMs": 538000,
+      "durationMs": 4000,
+      "groupIdx": 0,
+      "isTitle": true
+    },
+    {
+      "label": "Battute 49",
+      "startMs": 542000,
+      "durationMs": 17000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 50",
+      "startMs": 560000,
+      "durationMs": 14000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 51",
+      "startMs": 575000,
+      "durationMs": 12000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 52",
+      "startMs": 588000,
+      "durationMs": 19000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 53",
+      "startMs": 608000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 54",
+      "startMs": 617000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 55",
+      "startMs": 624000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 56",
+      "startMs": 631000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 57",
+      "startMs": 638000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 58",
+      "startMs": 647000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 59",
+      "startMs": 653000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 60",
+      "startMs": 661000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 61",
+      "startMs": 671000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 62",
+      "startMs": 679000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 63",
+      "startMs": 686000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 64",
+      "startMs": 702000,
+      "durationMs": 3000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 65",
+      "startMs": 706000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 66",
+      "startMs": 715000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 67",
+      "startMs": 721000,
+      "durationMs": 11000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 68",
+      "startMs": 733000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 69",
+      "startMs": 749000,
+      "durationMs": 16000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 70",
+      "startMs": 766000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 71",
+      "startMs": 773000,
+      "durationMs": 18000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 72",
+      "startMs": 792000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 73",
+      "startMs": 799000,
+      "durationMs": 16000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 74",
+      "startMs": 816000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 75",
+      "startMs": 824000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 76",
+      "startMs": 832000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 77",
+      "startMs": 840000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 78",
+      "startMs": 849000,
+      "durationMs": 18000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 79",
+      "startMs": 868000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 80",
+      "startMs": 876000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 81",
+      "startMs": 885000,
+      "durationMs": 17000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 82",
+      "startMs": 903000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 83",
+      "startMs": 909000,
+      "durationMs": 13000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 84",
+      "startMs": 923000,
+      "durationMs": 11000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 85",
+      "startMs": 935000,
+      "durationMs": 4000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 86",
+      "startMs": 940000,
+      "durationMs": 19000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 87",
+      "startMs": 960000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 88",
+      "startMs": 968000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 89",
+      "startMs": 976000,
+      "durationMs": 17000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 90",
+      "startMs": 994000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 91",
+      "startMs": 1002000,
+      "durationMs": 12000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 92",
+      "startMs": 1015000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 93",
+      "startMs": 1025000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 94",
+      "startMs": 1035000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 95",
+      "startMs": 1043000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 96",
+      "startMs": 1051000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 97",
+      "startMs": 1061000,
+      "durationMs": 12000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 98",
+      "startMs": 1074000,
+      "durationMs": 11000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 99",
+      "startMs": 1086000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 100",
+      "startMs": 1094000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 101",
+      "startMs": 1102000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 102",
+      "startMs": 1111000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 103",
+      "startMs": 1120000,
+      "durationMs": 13000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 104",
+      "startMs": 1134000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 105",
+      "startMs": 1140000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 106",
+      "startMs": 1150000,
+      "durationMs": 17000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 107",
+      "startMs": 1168000,
+      "durationMs": 10000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 108",
+      "startMs": 1179000,
+      "durationMs": 39000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Titolo: Montaggio totale battute Napoli andata",
+      "startMs": 1218000,
+      "durationMs": 4000,
+      "groupIdx": 0,
+      "isTitle": true
+    },
+    {
+      "label": "Battute 109",
+      "startMs": 1222000,
+      "durationMs": 25000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 110",
+      "startMs": 1248000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 111",
+      "startMs": 1258000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 112",
+      "startMs": 1268000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 113",
+      "startMs": 1277000,
+      "durationMs": 22000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 114",
+      "startMs": 1300000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 115",
+      "startMs": 1309000,
+      "durationMs": 12000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 116",
+      "startMs": 1322000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 117",
+      "startMs": 1331000,
+      "durationMs": 13000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 118",
+      "startMs": 1345000,
+      "durationMs": 13000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 119",
+      "startMs": 1359000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 120",
+      "startMs": 1375000,
+      "durationMs": 12000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 121",
+      "startMs": 1388000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 122",
+      "startMs": 1396000,
+      "durationMs": 11000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 123",
+      "startMs": 1408000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 124",
+      "startMs": 1417000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 125",
+      "startMs": 1425000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 126",
+      "startMs": 1433000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 127",
+      "startMs": 1439000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 128",
+      "startMs": 1446000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 129",
+      "startMs": 1454000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 130",
+      "startMs": 1462000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 131",
+      "startMs": 1470000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 132",
+      "startMs": 1478000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 133",
+      "startMs": 1487000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 134",
+      "startMs": 1497000,
+      "durationMs": 17000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 135",
+      "startMs": 1515000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 136",
+      "startMs": 1524000,
+      "durationMs": 17000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 137",
+      "startMs": 1542000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 138",
+      "startMs": 1550000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 139",
+      "startMs": 1559000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 140",
+      "startMs": 1567000,
+      "durationMs": 10000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 141",
+      "startMs": 1578000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 142",
+      "startMs": 1586000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 143",
+      "startMs": 1594000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 144",
+      "startMs": 1602000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 145",
+      "startMs": 1610000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 146",
+      "startMs": 1620000,
+      "durationMs": 13000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 147",
+      "startMs": 1634000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 148",
+      "startMs": 1642000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 149",
+      "startMs": 1649000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 150",
+      "startMs": 1659000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 151",
+      "startMs": 1667000,
+      "durationMs": 38000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Titolo: Montaggio totale battute Napoli andata",
+      "startMs": 1705000,
+      "durationMs": 4000,
+      "groupIdx": 0,
+      "isTitle": true
+    },
+    {
+      "label": "Battute 152",
+      "startMs": 1709000,
+      "durationMs": 12000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 153",
+      "startMs": 1722000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 154",
+      "startMs": 1730000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 155",
+      "startMs": 1737000,
+      "durationMs": 20000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 156",
+      "startMs": 1758000,
+      "durationMs": 11000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 157",
+      "startMs": 1770000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 158",
+      "startMs": 1778000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 159",
+      "startMs": 1787000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 160",
+      "startMs": 1794000,
+      "durationMs": 22000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 161",
+      "startMs": 1817000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 162",
+      "startMs": 1825000,
+      "durationMs": 12000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 163",
+      "startMs": 1838000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 164",
+      "startMs": 1846000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 165",
+      "startMs": 1853000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 166",
+      "startMs": 1862000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 167",
+      "startMs": 1872000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 168",
+      "startMs": 1880000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 169",
+      "startMs": 1888000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 170",
+      "startMs": 1904000,
+      "durationMs": 4000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 171",
+      "startMs": 1909000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 172",
+      "startMs": 1917000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 173",
+      "startMs": 1925000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 174",
+      "startMs": 1941000,
+      "durationMs": 19000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 175",
+      "startMs": 1961000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 176",
+      "startMs": 1967000,
+      "durationMs": 11000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 177",
+      "startMs": 1979000,
+      "durationMs": 12000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Titolo: Montaggio totale battute Napoli andata",
+      "startMs": 1991000,
+      "durationMs": 4000,
+      "groupIdx": 0,
+      "isTitle": true
+    },
+    {
+      "label": "Battute 178",
+      "startMs": 1995000,
+      "durationMs": 25000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 179",
+      "startMs": 2021000,
+      "durationMs": 16000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 180",
+      "startMs": 2038000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 181",
+      "startMs": 2045000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 182",
+      "startMs": 2053000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 183",
+      "startMs": 2061000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 184",
+      "startMs": 2071000,
+      "durationMs": 11000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 185",
+      "startMs": 2083000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 186",
+      "startMs": 2091000,
+      "durationMs": 11000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 187",
+      "startMs": 2103000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 188",
+      "startMs": 2113000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 189",
+      "startMs": 2123000,
+      "durationMs": 29000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 190",
+      "startMs": 2153000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 191",
+      "startMs": 2169000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 192",
+      "startMs": 2176000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 193",
+      "startMs": 2184000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 194",
+      "startMs": 2194000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 195",
+      "startMs": 2201000,
+      "durationMs": 14000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 196",
+      "startMs": 2216000,
+      "durationMs": 11000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 197",
+      "startMs": 2228000,
+      "durationMs": 21000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 198",
+      "startMs": 2250000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 199",
+      "startMs": 2257000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 200",
+      "startMs": 2264000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 201",
+      "startMs": 2271000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 202",
+      "startMs": 2281000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 203",
+      "startMs": 2289000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 204",
+      "startMs": 2305000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 205",
+      "startMs": 2315000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 206",
+      "startMs": 2325000,
+      "durationMs": 18000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 207",
+      "startMs": 2344000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 208",
+      "startMs": 2351000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 209",
+      "startMs": 2358000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 210",
+      "startMs": 2365000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 211",
+      "startMs": 2372000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 212",
+      "startMs": 2380000,
+      "durationMs": 12000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 213",
+      "startMs": 2393000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 214",
+      "startMs": 2401000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 215",
+      "startMs": 2409000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 216",
+      "startMs": 2417000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 217",
+      "startMs": 2423000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 218",
+      "startMs": 2432000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 219",
+      "startMs": 2439000,
+      "durationMs": 17000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 220",
+      "startMs": 2457000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 221",
+      "startMs": 2463000,
+      "durationMs": 26000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 222",
+      "startMs": 2490000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 223",
+      "startMs": 2496000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 224",
+      "startMs": 2502000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 225",
+      "startMs": 2510000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 226",
+      "startMs": 2518000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 227",
+      "startMs": 2526000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 228",
+      "startMs": 2534000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 229",
+      "startMs": 2542000,
+      "durationMs": 11000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 230",
+      "startMs": 2554000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 231",
+      "startMs": 2562000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 232",
+      "startMs": 2570000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 233",
+      "startMs": 2578000,
+      "durationMs": 13000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 234",
+      "startMs": 2592000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 235",
+      "startMs": 2600000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 236",
+      "startMs": 2608000,
+      "durationMs": 10000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 237",
+      "startMs": 2619000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 238",
+      "startMs": 2627000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 239",
+      "startMs": 2635000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 240",
+      "startMs": 2643000,
+      "durationMs": 23000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 241",
+      "startMs": 2667000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 242",
+      "startMs": 2675000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 243",
+      "startMs": 2683000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 244",
+      "startMs": 2693000,
+      "durationMs": 18000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 245",
+      "startMs": 2712000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 246",
+      "startMs": 2721000,
+      "durationMs": 10000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 247",
+      "startMs": 2732000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 248",
+      "startMs": 2740000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 249",
+      "startMs": 2756000,
+      "durationMs": 18000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 250",
+      "startMs": 2775000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 251",
+      "startMs": 2782000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 252",
+      "startMs": 2792000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 253",
+      "startMs": 2801000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 254",
+      "startMs": 2808000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Titolo: Montaggio totale battute Napoli andata",
+      "startMs": 2815000,
+      "durationMs": 4000,
+      "groupIdx": 0,
+      "isTitle": true
+    },
+    {
+      "label": "Battute 255",
+      "startMs": 2819000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 256",
+      "startMs": 2825000,
+      "durationMs": 17000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 257",
+      "startMs": 2843000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 258",
+      "startMs": 2849000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 259",
+      "startMs": 2855000,
+      "durationMs": 18000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 260",
+      "startMs": 2873000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 261",
+      "startMs": 2880000,
+      "durationMs": 13000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 262",
+      "startMs": 2894000,
+      "durationMs": 13000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 263",
+      "startMs": 2908000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 264",
+      "startMs": 2914000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 265",
+      "startMs": 2922000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 266",
+      "startMs": 2929000,
+      "durationMs": 3000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 267",
+      "startMs": 2933000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 268",
+      "startMs": 2941000,
+      "durationMs": 10000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 269",
+      "startMs": 2952000,
+      "durationMs": 10000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 270",
+      "startMs": 2963000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 271",
+      "startMs": 2970000,
+      "durationMs": 17000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 272",
+      "startMs": 2988000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 273",
+      "startMs": 2995000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 274",
+      "startMs": 3003000,
+      "durationMs": 23000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 275",
+      "startMs": 3027000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 276",
+      "startMs": 3034000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 277",
+      "startMs": 3042000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 278",
+      "startMs": 3049000,
+      "durationMs": 19000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 279",
+      "startMs": 3069000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 280",
+      "startMs": 3079000,
+      "durationMs": 13000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 281",
+      "startMs": 3093000,
+      "durationMs": 19000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 282",
+      "startMs": 3113000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 283",
+      "startMs": 3119000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 284",
+      "startMs": 3127000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 285",
+      "startMs": 3135000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 286",
+      "startMs": 3142000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 287",
+      "startMs": 3151000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 288",
+      "startMs": 3158000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 289",
+      "startMs": 3164000,
+      "durationMs": 4000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 290",
+      "startMs": 3169000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 291",
+      "startMs": 3177000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 292",
+      "startMs": 3183000,
+      "durationMs": 17000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 293",
+      "startMs": 3201000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 294",
+      "startMs": 3208000,
+      "durationMs": 16000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 295",
+      "startMs": 3225000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 296",
+      "startMs": 3232000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 297",
+      "startMs": 3240000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 298",
+      "startMs": 3246000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 299",
+      "startMs": 3253000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 300",
+      "startMs": 3261000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 301",
+      "startMs": 3268000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 302",
+      "startMs": 3274000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 303",
+      "startMs": 3281000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 304",
+      "startMs": 3288000,
+      "durationMs": 13000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 305",
+      "startMs": 3302000,
+      "durationMs": 17000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 306",
+      "startMs": 3320000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 307",
+      "startMs": 3327000,
+      "durationMs": 15000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 308",
+      "startMs": 3343000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 309",
+      "startMs": 3350000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 310",
+      "startMs": 3357000,
+      "durationMs": 10000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 311",
+      "startMs": 3368000,
+      "durationMs": 10000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 312",
+      "startMs": 3379000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 313",
+      "startMs": 3385000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 314",
+      "startMs": 3394000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 315",
+      "startMs": 3401000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 316",
+      "startMs": 3407000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 317",
+      "startMs": 3414000,
+      "durationMs": 12000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 318",
+      "startMs": 3427000,
+      "durationMs": 27000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 319",
+      "startMs": 3455000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Titolo: Montaggio totale battute Napoli andata",
+      "startMs": 3463000,
+      "durationMs": 4000,
+      "groupIdx": 0,
+      "isTitle": true
+    },
+    {
+      "label": "Battute 320",
+      "startMs": 3467000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 321",
+      "startMs": 3475000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 322",
+      "startMs": 3483000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 323",
+      "startMs": 3491000,
+      "durationMs": 18000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 324",
+      "startMs": 3510000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 325",
+      "startMs": 3518000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 326",
+      "startMs": 3527000,
+      "durationMs": 18000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 327",
+      "startMs": 3546000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 328",
+      "startMs": 3552000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 329",
+      "startMs": 3561000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 330",
+      "startMs": 3569000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 331",
+      "startMs": 3578000,
+      "durationMs": 10000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 332",
+      "startMs": 3589000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 333",
+      "startMs": 3597000,
+      "durationMs": 4000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 334",
+      "startMs": 3602000,
+      "durationMs": 37000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 335",
+      "startMs": 3640000,
+      "durationMs": 14000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Titolo: Montaggio totale battute Napoli andata",
+      "startMs": 3654000,
+      "durationMs": 4000,
+      "groupIdx": 0,
+      "isTitle": true
+    },
+    {
+      "label": "Battute 336",
+      "startMs": 3658000,
+      "durationMs": 5000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 337",
+      "startMs": 3664000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 338",
+      "startMs": 3672000,
+      "durationMs": 14000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 339",
+      "startMs": 3687000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 340",
+      "startMs": 3694000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 341",
+      "startMs": 3701000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 342",
+      "startMs": 3708000,
+      "durationMs": 10000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 343",
+      "startMs": 3719000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 344",
+      "startMs": 3726000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 345",
+      "startMs": 3734000,
+      "durationMs": 4000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 346",
+      "startMs": 3739000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 347",
+      "startMs": 3749000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Titolo: Montaggio totale battute Napoli andata",
+      "startMs": 3756000,
+      "durationMs": 4000,
+      "groupIdx": 0,
+      "isTitle": true
+    },
+    {
+      "label": "Battute 348",
+      "startMs": 3760000,
+      "durationMs": 19000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 349",
+      "startMs": 3780000,
+      "durationMs": 13000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 350",
+      "startMs": 3794000,
+      "durationMs": 6000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 351",
+      "startMs": 3801000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 352",
+      "startMs": 3811000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 353",
+      "startMs": 3819000,
+      "durationMs": 16000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 354",
+      "startMs": 3836000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 355",
+      "startMs": 3845000,
+      "durationMs": 12000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 356",
+      "startMs": 3858000,
+      "durationMs": 16000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 357",
+      "startMs": 3875000,
+      "durationMs": 11000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 358",
+      "startMs": 3887000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 359",
+      "startMs": 3895000,
+      "durationMs": 8000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 360",
+      "startMs": 3904000,
+      "durationMs": 16000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 361",
+      "startMs": 3921000,
+      "durationMs": 7000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 362",
+      "startMs": 3929000,
+      "durationMs": 30000,
+      "groupIdx": 0
+    },
+    {
+      "label": "Battute 363",
+      "startMs": 3960000,
+      "durationMs": 9000,
+      "groupIdx": 0
+    }
+  ]
+};
+// =========================================================
+
+const trackListEl   = document.getElementById('trackList');
+const nowPlayingEl  = document.getElementById('nowPlaying');
+const trackCounter  = document.getElementById('trackCounter');
+const totalCount    = document.getElementById('totalCount');
+const prevBtn       = document.getElementById('prevBtn');
+const nextBtn       = document.getElementById('nextBtn');
+const playPauseBtn  = document.getElementById('playPauseBtn');
+const stopAtEndCb   = document.getElementById('stopAtEnd');
+const pageTitle     = document.getElementById('pageTitle');
+const videoError    = document.getElementById('videoError');
+const errId         = document.getElementById('errId');
+const playerSurface = document.getElementById('playerSurface');
+const actionsToggleBtn = document.getElementById('actionsToggleBtn');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+let player          = null;
+let playerReady     = false;
+let currentIdx      = -1;
+
+document.title = (DATA.title || 'Player') + ' — Player Montaggio';
+pageTitle.textContent = DATA.title || 'Montaggio';
+const actionCount = DATA.chapters.filter(c => !c.isTitle).length;
+const titleCount = DATA.chapters.length - actionCount;
+totalCount.textContent = ' (' + actionCount + (titleCount ? ' azioni · ' + titleCount + ' titoli' : '') + ')';
+errId.textContent = YOUTUBE_ID;
+
+renderTrackList();
+setCurrentIdx(-1);
+updatePlayBtn();
+
+// --- Caricamento IFrame Player API di YouTube ---
+(function loadYT() {
+  if (window.YT && window.YT.Player) { onYouTubeIframeAPIReady(); return; }
+  const tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  document.head.appendChild(tag);
+})();
+
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('ytplayer', {
+    width: '100%',
+    height: '100%',
+    videoId: YOUTUBE_ID,
+    playerVars: {
+      rel: 0,            // limita i video correlati a fine clip
+      modestbranding: 1, // (deprecato da YouTube, innocuo)
+      playsinline: 1,
+      controls: 1,
+      fs: 0
+    },
+    events: {
+      onReady: onPlayerReady,
+      onStateChange: onPlayerStateChange,
+      onError: onPlayerError
+    }
+  });
+}
+// l'API cerca questa funzione nel global scope
+window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+
+function onPlayerReady() {
+  playerReady = true;
+  setInterval(tick, 200); // polling: sostituisce l'evento "timeupdate" del tag <video>
+}
+
+function onPlayerStateChange() { updatePlayBtn(); }
+
+function onPlayerError() { videoError.classList.add('show'); }
+
+// --- Ciclo di aggiornamento (200 ms) ---
+function tick() {
+  if (!playerReady || !player || typeof player.getCurrentTime !== 'function') return;
+  let t;
+  try { t = player.getCurrentTime(); } catch (e) { return; }
+  const tMs = t * 1000;
+  // Check the previous active chapter before advancing the selection: a poll
+  // can arrive after the boundary. Include the final chapter as well.
+  const active = currentIdx >= 0 ? currentIdx : chapterIndexAtMs(tMs);
+  if (stopAtEndCb.checked && active >= 0) {
+    const c = DATA.chapters[active];
+    const endMs = c.startMs + c.durationMs;
+    if (tMs >= endMs - 60 && player.getPlayerState() === 1) {
+      player.pauseVideo();
+      player.seekTo(endMs / 1000, true);
+      setCurrentIdx(chapterIndexAtMs(endMs));
+      return;
+    }
+  }
+  const idx = chapterIndexAtMs(tMs);
+  if (idx !== currentIdx) setCurrentIdx(idx);
+}
+
+function renderTrackList() {
+  trackListEl.innerHTML = '';
+  let lastGroup = -2;
+  let actionNumber = 0;
+  DATA.chapters.forEach((c, i) => {
+    if (DATA.groups && DATA.groups.length > 0 && c.groupIdx !== lastGroup) {
+      const h = document.createElement('div');
+      h.className = 'group-header';
+      h.textContent = (c.groupIdx >= 0 && c.groupIdx < DATA.groups.length)
+        ? DATA.groups[c.groupIdx]
+        : 'Generale';
+      trackListEl.appendChild(h);
+      lastGroup = c.groupIdx;
+    }
+    const row = document.createElement('div');
+    row.className = 'track' + (i === 0 && c.groupIdx === -1 && /copertina/i.test(c.label) ? ' cover' : '');
+    row.dataset.idx = i;
+    row.classList.toggle('title', Boolean(c.isTitle));
+    const number = c.isTitle ? 'Titolo' : String(++actionNumber);
+    row.innerHTML =
+      '<span class="num">' + number + '</span>' +
+      '<span class="label"></span>' +
+      '<span class="dur">' + formatMs(c.durationMs) + '</span>';
+    row.querySelector('.label').textContent = c.label;
+    row.addEventListener('click', () => seekToChapter(i));
+    trackListEl.appendChild(row);
+  });
+}
+
+function chapterIndexAtMs(ms) {
+  for (let i = 0; i < DATA.chapters.length; i++) {
+    const c = DATA.chapters[i];
+    if (ms >= c.startMs && ms < c.startMs + c.durationMs) return i;
+  }
+  if (DATA.chapters.length > 0) {
+    const last = DATA.chapters[DATA.chapters.length - 1];
+    if (ms >= last.startMs) return DATA.chapters.length - 1;
+  }
+  return -1;
+}
+
+function setCurrentIdx(idx) {
+  currentIdx = idx;
+  trackListEl.querySelectorAll('.track').forEach((el) => {
+    el.classList.toggle('active', parseInt(el.dataset.idx, 10) === idx);
+  });
+  const active = trackListEl.querySelector('.track.active');
+  if (active) {
+    const r = active.getBoundingClientRect();
+    const pr = trackListEl.getBoundingClientRect();
+    if (r.top < pr.top || r.bottom > pr.bottom) active.scrollIntoView({ block: 'nearest' });
+  }
+  if (idx >= 0) {
+    const c = DATA.chapters[idx];
+    const number = c.isTitle ? 'Titolo' : DATA.chapters.slice(0, idx + 1).filter(ch => !ch.isTitle).length;
+    nowPlayingEl.innerHTML = '<b>' + number + (c.isTitle ? '' : '.') + '</b> ' + escapeHtml(c.label);
+    trackCounter.textContent = c.isTitle ? 'Titolo' : number + ' / ' + actionCount;
+  } else {
+    nowPlayingEl.textContent = '—';
+    trackCounter.textContent = '—';
+  }
+  prevBtn.disabled = (idx <= 0);
+  nextBtn.disabled = (idx < 0 || idx >= DATA.chapters.length - 1);
+}
+
+function updatePlayBtn() {
+  const playing = playerReady && player && typeof player.getPlayerState === 'function'
+    && player.getPlayerState() === 1;
+  playPauseBtn.textContent = playing ? '❚❚' : '▶';
+}
+
+function seekToChapter(i) {
+  if (i < 0 || i >= DATA.chapters.length) return;
+  if (!playerReady) return;
+  const c = DATA.chapters[i];
+  player.seekTo((c.startMs + 1) / 1000, true);
+  setCurrentIdx(i);
+  player.playVideo();
+}
+
+function gotoPrev() {
+  if (currentIdx > 0) seekToChapter(currentIdx - 1);
+  else if (currentIdx < 0 && DATA.chapters.length > 0) seekToChapter(0);
+}
+function gotoNext() {
+  if (currentIdx >= 0 && currentIdx < DATA.chapters.length - 1) seekToChapter(currentIdx + 1);
+}
+function togglePlay() {
+  if (!playerReady) return;
+  if (player.getPlayerState() === 1) player.pauseVideo();
+  else player.playVideo();
+}
+
+prevBtn.addEventListener('click', gotoPrev);
+nextBtn.addEventListener('click', gotoNext);
+playPauseBtn.addEventListener('click', togglePlay);
+
+function setActionsVisible(visible) {
+  document.body.classList.toggle('actions-hidden', !visible);
+  actionsToggleBtn.setAttribute('aria-expanded', String(visible));
+  actionsToggleBtn.setAttribute('aria-pressed', String(visible));
+}
+
+function updateFullscreenUi() {
+  const active = Boolean(document.fullscreenElement) || document.body.classList.contains('cinema-mode');
+  document.body.classList.toggle('fullscreen-ui', active);
+  fullscreenBtn.setAttribute('aria-pressed', String(active));
+  fullscreenBtn.setAttribute('aria-label', active
+    ? 'Esci da schermo intero'
+    : 'Schermo intero con azioni');
+  const label = fullscreenBtn.querySelector('.button-label');
+  if (label) label.textContent = active ? 'Esci' : 'Schermo intero';
+}
+
+async function toggleFullscreen() {
+  if (document.fullscreenElement) {
+    await document.exitFullscreen();
+    return;
+  }
+  if (document.body.classList.contains('cinema-mode')) {
+    document.body.classList.remove('cinema-mode');
+    updateFullscreenUi();
+    return;
+  }
+  if (playerSurface.requestFullscreen) {
+    try {
+      await playerSurface.requestFullscreen();
+      return;
+    } catch (e) {
+      // Safari mobile può rifiutare il fullscreen della pagina: usa la modalità cinema.
+    }
+  }
+  document.body.classList.add('cinema-mode');
+  updateFullscreenUi();
+}
+
+actionsToggleBtn.addEventListener('click', () => {
+  setActionsVisible(document.body.classList.contains('actions-hidden'));
+});
+fullscreenBtn.addEventListener('click', toggleFullscreen);
+document.addEventListener('fullscreenchange', updateFullscreenUi);
+setActionsVisible(true);
+updateFullscreenUi();
+
+document.addEventListener('keydown', (e) => {
+  if (e.target && /input|textarea/i.test(e.target.tagName)) return;
+  if (e.code === 'Space')      { e.preventDefault(); togglePlay(); }
+  else if (e.code === 'ArrowLeft'  && !e.shiftKey) { e.preventDefault(); gotoPrev(); }
+  else if (e.code === 'ArrowRight' && !e.shiftKey) { e.preventDefault(); gotoNext(); }
+  else if (e.code === 'Home')  { e.preventDefault(); seekToChapter(0); }
+  else if (e.code === 'End')   { e.preventDefault(); seekToChapter(DATA.chapters.length - 1); }
+});
+
+function formatMs(ms) {
+  const totalS = Math.round(ms / 1000);
+  const m = Math.floor(totalS / 60);
+  const s = totalS % 60;
+  if (m === 0) return s + 's';
+  return m + ':' + String(s).padStart(2, '0');
+}
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+</script>
+
+</body>
+</html>
